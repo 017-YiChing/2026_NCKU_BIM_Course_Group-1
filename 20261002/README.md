@@ -1,4 +1,4 @@
-# 2026-10-02 GitHub + Revit MCP + AI 協作
+# 2026-10-02 GitHub + Revit MCP + AI 協作 拉拉拉拉
 
 - 主題：GitHub 工作流 + Revit MCP；搭配 coding agent 與 GitHub 協作
 - 參考：[shuotao/REVIT_MCP_study](https://github.com/shuotao/REVIT_MCP_study)
