@@ -16,7 +16,7 @@ namespace RfiPlugin
         public string IssueDescription => _desc.Text.Trim();
         public string Reporter => _reporter.Text.Trim();
 
-        public IssueForm()
+        public IssueForm(string defaultReporter = "")
         {
             Text = "建立 RFI 議題";
             Size = new Size(500, 500);
@@ -54,7 +54,7 @@ namespace RfiPlugin
             y += 32;
             _reporter.Top = y; _reporter.Left = left; _reporter.Width = width; _reporter.Height = 34; _reporter.Name = "txtReporter";
             _reporter.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            _reporter.Text = Environment.UserName; // 預設 Windows 帳號，可刪改
+            _reporter.Text = defaultReporter ?? ""; // 預設 Revit 登入帳號，可刪改
             y += 58;
 
             var ok = new Button { Text = "送出", DialogResult = DialogResult.OK, Top = y, Left = left + width - 200, Width = 96, Height = 36 };

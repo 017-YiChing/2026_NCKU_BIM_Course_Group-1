@@ -63,8 +63,10 @@ namespace RfiPlugin
                 return Result.Failed;
             }
 
-            // 3. 輸入標題＋說明
-            using (var form = new IssueForm())
+            // 3. 輸入標題＋說明（回報人預設 Revit 登入帳號，未登入退回 Windows 帳號）
+            string login = data.Application.Application.LoginUserId;
+            if (string.IsNullOrWhiteSpace(login)) login = Environment.UserName;
+            using (var form = new IssueForm(login))
             {
                 if (form.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                     return Result.Cancelled;
