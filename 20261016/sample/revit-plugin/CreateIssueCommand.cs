@@ -42,7 +42,7 @@ namespace RfiPlugin
             {
                 var opt = new ImageExportOptions
                 {
-                    ExportRange = ImageExportRange.CurrentView,
+                    ExportRange = ExportRange.CurrentView,
                     FilePath = shotPath,
                     ImageResolution = ImageResolution.DPI_150,
                     HLRandWFViewsFileType = ImageFileType.PNG,

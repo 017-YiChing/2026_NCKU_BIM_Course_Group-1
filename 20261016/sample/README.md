@@ -22,11 +22,11 @@ npm install
 npm run dev
 # 瀏覽器開 http://localhost:5173
 
-# 3. 外掛（教室電腦有 Revit 2024 才能 build；備課機沒裝 Revit 屬正常）
+# 3. 外掛（有裝對應版 Revit 才能 build 該配置）
 cd ../revit-plugin
-dotnet build -c Release
-.\install.ps1
-# 重開 Revit 2024 → "RFI Sample" 分頁 → 選一個元件 → 按「建立議題」
+# 學生（Revit 2024）：dotnet build -c Release.R24; .\install.ps1 -Version 2024
+# 備課機（Revit 2026）：dotnet build -c Release.R26; .\install.ps1 -Version 2026
+# 重開對應版 Revit → "RFI Sample" 分頁 → 選一個元件 → 按「建立議題」
 ```
 
 ## API（SPEC Ch5 最小集，後端都已實作＋測試）
