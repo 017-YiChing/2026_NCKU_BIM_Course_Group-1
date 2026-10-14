@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	addr := flag.String("addr", ":8080", "listen addr")
+	addr := flag.String("addr", "127.0.0.1:8080", "listen addr（只綁 loopback，避免跳防火牆新增規則；教室要多人連同一台才改成 :8080）")
 	dbPath := flag.String("db", "./data/rfi.db", "sqlite file path")
 	dataDir := flag.String("data", "./data", "data dir (screenshots/, models/)")
 	frontendOrigin := flag.String("cors", "http://localhost:5173", "允許的前端 origin（Vite 預設）")
