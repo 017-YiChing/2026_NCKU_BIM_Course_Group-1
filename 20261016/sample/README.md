@@ -44,6 +44,11 @@ dotnet build -c Release.R24
 
 原則：外掛只管擷取、後端只管存取、前端只管呈現；要加功能先想它屬於哪一層。
 
+## 封存（不刪除，只隱藏）
+
+議題太多時在詳情按「封存」：列表預設不顯示，紀錄全留；要看按「顯示已封存」。
+API：`PATCH /api/issues/:id` 帶 `{"archived": true}`；列表 `?archived=1` 只看封存、`?archived=all` 全看。
+
 ## 常見卡關
 
 | 症狀 | 解法 |

@@ -11,6 +11,7 @@ export default function App() {
   const [detail, setDetail] = useState(null)
   const [err, setErr] = useState('')
   const [open, setOpen] = useState({}) // 樹節點展開狀態：{modelName: true}
+  const [showArchived, setShowArchived] = useState(false) // 封存開關：預設隱藏
 
   // 依檔案/模型分組（空的歸「未分類」）
   const groups = {}
@@ -20,16 +21,16 @@ export default function App() {
     groups[g].push(it)
   }
 
-  async function refresh(f = filter) {
+  async function refresh(f = filter, a = showArchived) {
     try {
       setErr('')
-      setIssues(await listIssues(f))
+      setIssues(await listIssues(f, a ? 'all' : ''))
     } catch (e) {
       setErr('後端連不上（先 go run ./backend，再 npm run dev）：' + e.message)
     }
   }
 
-  useEffect(() => { refresh(filter) }, [filter])
+  useEffect(() => { refresh(filter, showArchived) }, [filter, showArchived])
 
   useEffect(() => {
     if (selectedId == null) { setDetail(null); return }
@@ -68,6 +69,10 @@ export default function App() {
             </button>
           ))}
           <button onClick={() => refresh()}>重整</button>
+          <button onClick={() => setShowArchived(!showArchived)}
+            style={{ fontWeight: showArchived ? 'bold' : 'normal' }}>
+            {showArchived ? '隱藏已封存' : '顯示已封存'}
+          </button>
         </div>
         {err && <p style={{ color: 'crimson' }}>{err}</p>}
         <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -84,6 +89,7 @@ export default function App() {
                       style={{ cursor: 'pointer', border: '1px solid #ccc', marginBottom: 6, padding: 8,
                         background: selectedId === it.id ? '#eef' : '#fff' }}>
                       <b>#{it.id} {it.title}</b>
+                      {it.archived && <span style={{ color: '#999' }}>（已封存）</span>}
                       <div>{STATUS_LABEL[it.status]} · {it.source} · {it.reporter}</div>
                       {it.view_name && <div>視圖：{it.view_name}</div>}
                     </li>
@@ -122,6 +128,11 @@ export default function App() {
               <button onClick={() => onPatch('open')}>退回 open</button>
               <button onClick={() => onPatch('in_progress')}>設 in_progress</button>
               <button onClick={() => onPatch('closed')}>設 closed</button>
+              <button onClick={async () => {
+                const updated = await patchIssue(selectedId, { archived: !detail.archived })
+                setDetail(updated)
+                refresh()
+              }}>{detail.archived ? '取消封存' : '封存（保留紀錄）'}</button>
             </div>
             <p style={{ color: '#666', marginTop: 16 }}>
               第一版無 IFC viewer（依課堂決議先只做列表+詳情）。

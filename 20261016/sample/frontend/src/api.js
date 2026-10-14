@@ -1,8 +1,11 @@
 // 後端位址：Vite proxy 下用相對路徑即可；直連後端時改這裡。
 export const API_BASE = ''
 
-export async function listIssues(status = '') {
-  const q = status ? `?status=${encodeURIComponent(status)}` : ''
+export async function listIssues(status = '', archived = '') {
+  const p = new URLSearchParams()
+  if (status) p.set('status', status)
+  if (archived) p.set('archived', archived) // '1' 只看已封存，'all' 全看，預設只看未封存
+  const q = p.toString() ? `?${p.toString()}` : ''
   const r = await fetch(`${API_BASE}/api/issues${q}`)
   if (!r.ok) throw new Error(await r.text())
   return r.json()

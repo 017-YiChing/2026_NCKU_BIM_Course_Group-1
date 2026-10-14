@@ -126,30 +126,39 @@ func (s *Server) handleCreateIssue(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, issue)
 }
 
-// GET /api/issues?status=open
+// GET /api/issues?status=open&archived=1
+// archived 預設只顯示未封存；archived=1 只看已封存；archived=all 全看。
 func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT i.id,i.title,i.description,i.status,i.reporter,i.assignee,i.source,
+	base := `SELECT i.id,i.title,i.description,i.status,i.reporter,i.assignee,i.source,
 		COALESCE(i.revit_element_id,''),COALESCE(i.ifc_global_id,''),i.model_id,
 		COALESCE(i.screenshot,''),COALESCE(i.position,''),
 		COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
 		COALESCE(NULLIF(i.model_name,''), m.filename, ''),
-		i.created_at,i.updated_at
-		FROM issues i LEFT JOIN models m ON m.id = i.model_id ORDER BY i.id DESC`
+		i.archived,i.created_at,i.updated_at
+		FROM issues i LEFT JOIN models m ON m.id = i.model_id`
+	var conds []string
 	var args []any
 	if st := r.URL.Query().Get("status"); st != "" {
 		if !validStatus[st] {
 			writeErr(w, http.StatusBadRequest, "status 須為 open/in_progress/closed")
 			return
 		}
-		q = `SELECT i.id,i.title,i.description,i.status,i.reporter,i.assignee,i.source,
-			COALESCE(i.revit_element_id,''),COALESCE(i.ifc_global_id,''),i.model_id,
-			COALESCE(i.screenshot,''),COALESCE(i.position,''),
-			COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
-			COALESCE(NULLIF(i.model_name,''), m.filename, ''),
-			i.created_at,i.updated_at
-			FROM issues i LEFT JOIN models m ON m.id = i.model_id WHERE i.status=? ORDER BY i.id DESC`
+		conds = append(conds, "i.status=?")
 		args = append(args, st)
 	}
+	switch r.URL.Query().Get("archived") {
+	case "1":
+		conds = append(conds, "i.archived=1")
+	case "all":
+		// 不篩
+	default:
+		conds = append(conds, "i.archived=0")
+	}
+	q := base
+	if len(conds) > 0 {
+		q += " WHERE " + strings.Join(conds, " AND ")
+	}
+	q += " ORDER BY i.id DESC"
 	rows, err := s.DB.Query(q, args...)
 	if err != nil {
 		writeErr(w, 500, err.Error())
@@ -162,7 +171,8 @@ func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.Status,
 			&it.Reporter, &it.Assignee, &it.Source, &it.RevitElementID,
 			&it.IFCGlobalID, &it.ModelID, &it.Screenshot, &it.Position,
-			&it.ViewName, &it.RevitViewID, &it.ModelName, &it.CreatedAt, &it.UpdatedAt); err != nil {
+			&it.ViewName, &it.RevitViewID, &it.ModelName, &it.Archived,
+			&it.CreatedAt, &it.UpdatedAt); err != nil {
 			writeErr(w, 500, err.Error())
 			return
 		}
@@ -190,7 +200,7 @@ func (s *Server) handleGetIssue(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, it)
 }
 
-// PATCH /api/issues/{id} — JSON: {status?, assignee?}
+// PATCH /api/issues/{id} — JSON: {status?, assignee?, archived?}
 func (s *Server) handlePatchIssue(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
@@ -200,6 +210,7 @@ func (s *Server) handlePatchIssue(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Status   *string `json:"status"`
 		Assignee *string `json:"assignee"`
+		Archived *bool   `json:"archived"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeErr(w, http.StatusBadRequest, "JSON 解析失敗: "+err.Error())
@@ -209,8 +220,8 @@ func (s *Server) handlePatchIssue(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "status 須為 open/in_progress/closed")
 		return
 	}
-	if body.Status == nil && body.Assignee == nil {
-		writeErr(w, http.StatusBadRequest, "至少要帶 status 或 assignee")
+	if body.Status == nil && body.Assignee == nil && body.Archived == nil {
+		writeErr(w, http.StatusBadRequest, "至少要帶 status、assignee 或 archived")
 		return
 	}
 	if body.Status != nil {
@@ -221,6 +232,16 @@ func (s *Server) handlePatchIssue(w http.ResponseWriter, r *http.Request) {
 	}
 	if body.Assignee != nil {
 		if _, err := s.DB.Exec(`UPDATE issues SET assignee=?, updated_at=datetime('now') WHERE id=?`, *body.Assignee, id); err != nil {
+			writeErr(w, 500, err.Error())
+			return
+		}
+	}
+	if body.Archived != nil {
+		v := 0
+		if *body.Archived {
+			v = 1
+		}
+		if _, err := s.DB.Exec(`UPDATE issues SET archived=?, updated_at=datetime('now') WHERE id=?`, v, id); err != nil {
 			writeErr(w, 500, err.Error())
 			return
 		}
@@ -244,12 +265,12 @@ func getIssueByID(db *sql.DB, id int64) (Issue, error) {
 		COALESCE(i.screenshot,''),COALESCE(i.position,''),
 		COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
 		COALESCE(NULLIF(i.model_name,''), m.filename, ''),
-		i.created_at,i.updated_at
+		i.archived,i.created_at,i.updated_at
 		FROM issues i LEFT JOIN models m ON m.id = i.model_id WHERE i.id=?`, id).Scan(
 		&it.ID, &it.Title, &it.Description, &it.Status, &it.Reporter,
 		&it.Assignee, &it.Source, &it.RevitElementID, &it.IFCGlobalID,
 		&it.ModelID, &it.Screenshot, &it.Position,
-		&it.ViewName, &it.RevitViewID, &it.ModelName, &it.CreatedAt, &it.UpdatedAt)
+		&it.ViewName, &it.RevitViewID, &it.ModelName, &it.Archived, &it.CreatedAt, &it.UpdatedAt)
 	return it, err
 }
 

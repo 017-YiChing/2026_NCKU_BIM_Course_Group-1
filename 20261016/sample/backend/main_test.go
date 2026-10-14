@@ -101,6 +101,32 @@ func TestIssueCRUD(t *testing.T) {
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("bad status = %d, want 400", rec.Code)
 	}
+
+	// 封存：預設列表看不到，archived=1 才看得到
+	arc := bytes.NewBufferString(`{"archived":true}`)
+	req = httptest.NewRequest("PATCH", "/api/issues/1", arc)
+	req.Header.Set("Content-Type", "application/json")
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("archive = %d, body=%s", rec.Code, rec.Body.String())
+	}
+	req = httptest.NewRequest("GET", "/api/issues", nil)
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	var hidden []Issue
+	_ = json.Unmarshal(rec.Body.Bytes(), &hidden)
+	if len(hidden) != 0 {
+		t.Fatalf("archived issue should be hidden, got %d", len(hidden))
+	}
+	req = httptest.NewRequest("GET", "/api/issues?archived=1", nil)
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	var shown []Issue
+	_ = json.Unmarshal(rec.Body.Bytes(), &shown)
+	if len(shown) != 1 || !shown[0].Archived {
+		t.Fatalf("archived=1 should show it: %+v", shown)
+	}
 }
 
 func TestParseIFCIdentity(t *testing.T) {
