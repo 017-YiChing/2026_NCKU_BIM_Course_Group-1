@@ -1,4 +1,4 @@
-# 部署（傳統 .addin 模式，跟 10/02 MCP add-in 同流程）：
+﻿# 部署（傳統 .addin 模式，跟 10/02 MCP add-in 同流程）：
 #   學生（Revit 2024）：dotnet build -c Release.R24; .\install.ps1 -Version 2024
 #   備課機（Revit 2026）：dotnet build -c Release.R26; .\install.ps1 -Version 2026
 #   跑完重開對應版 Revit → "RFI Sample" 分頁 → 選一個元件 → 按「建立議題」

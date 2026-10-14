@@ -1,53 +1,57 @@
-# RFI 議題追蹤圖台 sample（10/16 課上範例）
+# RFI 議題追蹤圖台 sample（＝課上骨架，拿去改）
 
-對應教材：[`SPEC.md`](../SPEC.md)。第一版最小可用（已驗證：後端 `go test` 過、前端 `vite build` 過）：
+對應教材：[`SPEC.md`](../SPEC.md)；課程說明見[上一層 README](../README.md)。
+這一包就是骨架：課上各組先把它跑起來，再改成自己的題目。
 
-- `backend/` — Go + SQLite（`modernc.org/sqlite`，pure Go 免裝 CGO），`go run .` 即跑 `:8080`
-- `frontend/` — React 19 + Vite，列表＋詳情＋手填新增（第一版無 IFC viewer，決議見下）
-- `revit-plugin/` — C# 外掛，「建立議題」：讀選取 ElementId → 匯出視圖截圖 → POST 到後端
+## 課前裝好（缺一不可，先驗過）
 
-課堂決議（已定案）：前端第一版**先只做列表+詳情**，IFC viewer 為延伸；
-外掛用**傳統 `.addin` 部署**（跟 10/02 MCP add-in 同模式，需重開 Revit）。
+| 工具 | 用途 | 驗證 |
+|------|------|------|
+| Revit 2024 學生版 | 外掛跑的地方 | 能開、能建牆 |
+| .NET SDK（8 以上） | 編外掛 | `dotnet --version` |
+| Go（1.23 以上） | 跑後端 | `go version` |
+| Node.js LTS 20+ | 跑前端 | `node --version` |
+| Git | 交件 | `git --version` |
 
-## 跑起來（三步）
+## 跑起來（兩步）
 
 ```powershell
-# 1. 後端（:8080）
-cd sample/backend
-go run .
-
-# 2. 前端（:5173，proxy 轉到 :8080）
-cd ../frontend
-npm install
-npm run dev
+# 1. 圖台（開兩個視窗：後端 :8080＋前端 :5173）
+.\start.ps1
 # 瀏覽器開 http://localhost:5173
 
-# 3. 外掛（有裝對應版 Revit 才能 build 該配置）
-cd ../revit-plugin
-# 學生（Revit 2024）：dotnet build -c Release.R24; .\install.ps1 -Version 2024
-# 備課機（Revit 2026）：dotnet build -c Release.R26; .\install.ps1 -Version 2026
-# 重開對應版 Revit → "RFI Sample" 分頁 → 選一個元件 → 按「建立議題」
+# 2. 外掛（教室電腦，Revit 2024）
+cd revit-plugin
+dotnet build -c Release.R24
+.\install.ps1 -Version 2024
+# 重開 Revit 2024 → "RFI Sample" 分頁 → 選一個元件 → 按「建立議題」
 ```
 
-## API（SPEC Ch5 最小集，後端都已實作＋測試）
+備課機是 Revit 2026：把上面 `R24` 換成 `R26`、`-Version 2026` 即可（csproj 雙配置已備好）。
 
-| 方法 | 路徑 | 說明 |
-|------|------|------|
-| POST | `/api/issues` | 新增（multipart：欄位＋screenshot 可選） |
-| GET | `/api/issues?status=open` | 列表（status 篩選） |
-| GET | `/api/issues/:id` | 詳情 |
-| PATCH | `/api/issues/:id` | 改狀態／指派（JSON） |
-| POST | `/api/models` | 上傳 IFC（存檔＋解析身分＋回 element_count） |
-| GET | `/api/models/:id/file` | 下載 IFC（給 viewer 用，viewer 為延伸） |
-| GET | `/api/models/:id/elements` | 元件身分列表 |
+## 要改什麼（地圖）
 
-驗證：`cd backend && go test ./...`（含議題 CRUD＋IFC 身分解析測試）。
+| 想改 | 動哪個檔 |
+|------|----------|
+| 議題欄位、狀態流 | `backend/models.go`＋`db.go`（改表），`handlers_issues.go`（改端點） |
+| 後端位址、送出內容 | `revit-plugin/CreateIssueCommand.cs`（`BackendBase`） |
+| 輸入視窗欄位 | `revit-plugin/IssueForm.cs` |
+| 列表/詳情長相 | `frontend/src/App.jsx`，打 API 看 `frontend/src/api.js` |
+| Ribbon 按鈕/分頁名 | `revit-plugin/App.cs` |
 
-## 給各組的提示（SPEC Ch11）
+原則：外掛只管擷取、後端只管存取、前端只管呈現；要加功能先想它屬於哪一層。
 
-各組**不沿用這個框架改**，做自己的 AI 應用。可參考的只有架構思路：
+## 常見卡關
 
-- Ch2 分層：擷取（外掛）／存取（後端）／呈現（前端）拆開
-- Ch3 綁定設計：議題一律綁模型物件（ElementId 或 GlobalId），圖台一點即定位
+| 症狀 | 解法 |
+|------|------|
+| 網頁說後端連不上 | 後端視窗還在跑嗎？先 `go run .` 再 `npm run dev` |
+| port 被佔（:8080/:5173） | 關掉舊的黑視窗再跑 `.\start.ps1` |
+| 外掛按鈕沒出現 | 重開 Revit；確認裝到 `Addins\2024`（`install.ps1` 會印路徑） |
+| 送出說後端沒跑 | 外掛連的是 `localhost:8080`，後端視窗要開著 |
+| Revit 開不了檔案 | 學生版與商業版不相容，一律用學生版產檔 |
 
-各組起手骨架（超薄版 starter）另開一輪再做。
+## 交件
+
+照根 README「交件流程」：組 fork → 改 `20261016/sample/`（或複製出去做自己的）→ PR 回主 repo，截止 10/29 23:59。
+各組做自己的 AI 應用，不沿用這包改外觀；架構思路（分層、議題綁模型物件）可參考。
