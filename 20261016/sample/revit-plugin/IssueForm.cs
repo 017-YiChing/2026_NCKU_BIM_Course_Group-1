@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -53,6 +54,7 @@ namespace RfiPlugin
             y += 32;
             _reporter.Top = y; _reporter.Left = left; _reporter.Width = width; _reporter.Height = 34; _reporter.Name = "txtReporter";
             _reporter.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            _reporter.Text = Environment.UserName; // 預設 Windows 帳號，可刪改
             y += 58;
 
             var ok = new Button { Text = "送出", DialogResult = DialogResult.OK, Top = y, Left = left + width - 200, Width = 96, Height = 36 };

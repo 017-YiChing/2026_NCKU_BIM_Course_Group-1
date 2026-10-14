@@ -21,7 +21,7 @@ namespace RfiPlugin
 
         private class Row
         {
-            public long Id; public string Title; public string ViewName; public string ViewUid;
+            public long Id; public string Title; public string ViewName; public string ViewUid; public string ElementId;
             public override string ToString() => $"#{Id} {Title}（{ViewName}）";
         }
 
@@ -87,6 +87,17 @@ namespace RfiPlugin
                 try
                 {
                     uiDoc.ActiveView = target;
+                    // 亮顯議題綁定的元件（有記 ElementId 才做；元件被刪就跳過）
+                    if (long.TryParse(sel.ElementId, out long eid))
+                    {
+                        try
+                        {
+                            var id = new ElementId(eid);
+                            uiDoc.Selection.SetElementIds(new List<ElementId> { id });
+                            uiDoc.ShowElements(id);
+                        }
+                        catch { /* 元件不在了就不亮顯，視圖照開 */ }
+                    }
                     return Result.Succeeded;
                 }
                 catch (Exception ex)
@@ -110,6 +121,7 @@ namespace RfiPlugin
                     Title = Str(s, "title"),
                     ViewName = Str(s, "view_name"),
                     ViewUid = Str(s, "revit_view_id"),
+                    ElementId = Str(s, "revit_element_id"),
                 });
             }
             return out_;
