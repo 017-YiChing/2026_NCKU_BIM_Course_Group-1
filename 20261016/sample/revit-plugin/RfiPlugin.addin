@@ -3,7 +3,7 @@
   <AddIn Type="Application">
     <Name>RFI 議題追蹤（sample）</Name>
     <Assembly>RfiPlugin.dll</Assembly>
-    <AddInId>3B5A7E11-8C4A-4F2B-9E1D-1016RFISAMPLE</AddInId>
+    <AddInId>149C9661-189B-424B-A2BC-77FC3AA45F9B</AddInId>
     <FullClassName>RfiPlugin.App</FullClassName>
     <VendorId>NCKU</VendorId>
   </AddIn>
