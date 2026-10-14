@@ -134,7 +134,7 @@ func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
 		COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
 		COALESCE(NULLIF(i.model_name,''), m.filename, ''),
 		i.created_at,i.updated_at
-		FROM issues i LEFT JOIN models m ON m.id = i.model_id ORDER BY id DESC`
+		FROM issues i LEFT JOIN models m ON m.id = i.model_id ORDER BY i.id DESC`
 	var args []any
 	if st := r.URL.Query().Get("status"); st != "" {
 		if !validStatus[st] {
