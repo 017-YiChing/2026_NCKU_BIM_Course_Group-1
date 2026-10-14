@@ -17,23 +17,35 @@ namespace RfiPlugin
         public IssueForm()
         {
             Text = "建立 RFI 議題";
-            Size = new Size(380, 300);
+            Size = new Size(480, 460);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            Padding = new Padding(16);
 
-            var lbl1 = new Label { Text = "標題（必填）", Top = 12, Left = 12, Width = 340 };
-            _title.Top = 34; _title.Left = 12; _title.Width = 340;
+            const int left = 20;
+            const int width = 424;
+            int y = 16;
 
-            var lbl2 = new Label { Text = "說明", Top = 62, Left = 12, Width = 340 };
-            _desc.Top = 84; _desc.Left = 12; _desc.Width = 340; _desc.Height = 80; _desc.Multiline = true;
+            var lbl1 = new Label { Text = "標題（必填）", Top = y, Left = left, Width = width, Height = 22 };
+            y += 26;
+            _title.Top = y; _title.Left = left; _title.Width = width; _title.Height = 28;
+            y += 40;
 
-            var lbl3 = new Label { Text = "回報人", Top = 172, Left = 12, Width = 340 };
-            _reporter.Top = 194; _reporter.Left = 12; _reporter.Width = 340;
+            var lbl2 = new Label { Text = "說明", Top = y, Left = left, Width = width, Height = 22 };
+            y += 26;
+            _desc.Top = y; _desc.Left = left; _desc.Width = width; _desc.Height = 130;
+            _desc.Multiline = true; _desc.ScrollBars = ScrollBars.Vertical;
+            y += 146;
 
-            var ok = new Button { Text = "送出", DialogResult = DialogResult.OK, Top = 226, Left = 196, Width = 75 };
-            var cancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel, Top = 226, Left = 279, Width = 75 };
+            var lbl3 = new Label { Text = "回報人", Top = y, Left = left, Width = width, Height = 22 };
+            y += 26;
+            _reporter.Top = y; _reporter.Left = left; _reporter.Width = width; _reporter.Height = 28;
+            y += 52;
+
+            var ok = new Button { Text = "送出", DialogResult = DialogResult.OK, Top = y, Left = left + width - 200, Width = 96, Height = 34 };
+            var cancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel, Top = y, Left = left + width - 96, Width = 96, Height = 34 };
             ok.Click += (s, e) =>
             {
                 if (string.IsNullOrWhiteSpace(_title.Text))
