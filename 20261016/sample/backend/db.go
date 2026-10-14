@@ -66,6 +66,7 @@ func migrate(db *sql.DB) error {
 	for _, col := range []string{
 		`ALTER TABLE issues ADD COLUMN view_name TEXT DEFAULT ''`,
 		`ALTER TABLE issues ADD COLUMN revit_view_id TEXT DEFAULT ''`,
+		`ALTER TABLE issues ADD COLUMN model_name TEXT DEFAULT ''`,
 	} {
 		if _, err := db.Exec(col); err != nil && !isDupColumnErr(err) {
 			return fmt.Errorf("migrate: %w", err)

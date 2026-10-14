@@ -39,6 +39,7 @@ func TestIssueCRUD(t *testing.T) {
 	_ = w.WriteField("revit_element_id", "12345")
 	_ = w.WriteField("view_name", "FL1 平面")
 	_ = w.WriteField("revit_view_id", "abc-123")
+	_ = w.WriteField("model_name", "小屋.rvt")
 	w.Close()
 	req := httptest.NewRequest("POST", "/api/issues", &b)
 	req.Header.Set("Content-Type", w.FormDataContentType())
@@ -56,6 +57,9 @@ func TestIssueCRUD(t *testing.T) {
 	}
 	if created.ViewName != "FL1 平面" || created.RevitViewID != "abc-123" {
 		t.Fatalf("view fields not round-tripped: %+v", created)
+	}
+	if created.ModelName != "小屋.rvt" {
+		t.Fatalf("model_name not round-tripped: %+v", created)
 	}
 
 	// list + status 篩選

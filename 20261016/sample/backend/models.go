@@ -13,6 +13,7 @@ type Issue struct {
 	IFCGlobalID   string `json:"ifc_global_id"`
 	ViewName      string `json:"view_name"`
 	RevitViewID   string `json:"revit_view_id"`
+	ModelName     string `json:"model_name"` // 議題所屬檔案/模型名（Revit 專案名或 IFC 檔名），樹狀分組用
 	ModelID       *int64 `json:"model_id"`
 	Screenshot    string `json:"screenshot"`
 	Position      string `json:"position"`

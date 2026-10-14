@@ -10,6 +10,15 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [detail, setDetail] = useState(null)
   const [err, setErr] = useState('')
+  const [open, setOpen] = useState({}) // 樹節點展開狀態：{modelName: true}
+
+  // 依檔案/模型分組（空的歸「未分類」）
+  const groups = {}
+  for (const it of issues) {
+    const g = it.model_name || '未分類'
+    if (!groups[g]) groups[g] = []
+    groups[g].push(it)
+  }
 
   async function refresh(f = filter) {
     try {
@@ -62,13 +71,25 @@ export default function App() {
         </div>
         {err && <p style={{ color: 'crimson' }}>{err}</p>}
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          {issues.map((it) => (
-            <li key={it.id} onClick={() => setSelectedId(it.id)}
-              style={{ cursor: 'pointer', border: '1px solid #ccc', marginBottom: 8, padding: 8,
-                background: selectedId === it.id ? '#eef' : '#fff' }}>
-              <b>#{it.id} {it.title}</b>
-              <div>{STATUS_LABEL[it.status]} · {it.source} · {it.reporter}</div>
-              {it.view_name && <div>視圖：{it.view_name}</div>}
+          {Object.entries(groups).map(([g, items]) => (
+            <li key={g} style={{ marginBottom: 8 }}>
+              <div onClick={() => setOpen({ ...open, [g]: !open[g] })}
+                style={{ cursor: 'pointer', fontWeight: 'bold', background: '#f0f0f0', padding: 8 }}>
+                {open[g] ? '▼' : '▶'} {g}（{items.length}）
+              </div>
+              {open[g] !== false && (
+                <ul style={{ listStyle: 'none', padding: '4px 0 4px 16px', margin: 0 }}>
+                  {items.map((it) => (
+                    <li key={it.id} onClick={() => setSelectedId(it.id)}
+                      style={{ cursor: 'pointer', border: '1px solid #ccc', marginBottom: 6, padding: 8,
+                        background: selectedId === it.id ? '#eef' : '#fff' }}>
+                      <b>#{it.id} {it.title}</b>
+                      <div>{STATUS_LABEL[it.status]} · {it.source} · {it.reporter}</div>
+                      {it.view_name && <div>視圖：{it.view_name}</div>}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>

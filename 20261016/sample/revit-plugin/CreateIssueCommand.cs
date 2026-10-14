@@ -40,6 +40,8 @@ namespace RfiPlugin
             var activeView = doc.ActiveView;
             string viewName = activeView != null ? activeView.Name : "";
             string viewUid = activeView != null ? activeView.UniqueId : "";
+            // 1c. 所屬檔案/模型名（樹狀分組用；未存檔顯示專案名如「專案1」）
+            string modelName = doc.Title;
 
             // 2. 截圖：匯出使用中視圖
             string shotPath = Path.Combine(Path.GetTempPath(), $"rfi_{DateTime.Now:yyyyMMddHHmmss}.png");
@@ -80,6 +82,7 @@ namespace RfiPlugin
                         content.Add(new StringContent(elementId), "revit_element_id");
                         content.Add(new StringContent(viewName), "view_name");
                         content.Add(new StringContent(viewUid), "revit_view_id");
+                        content.Add(new StringContent(modelName ?? ""), "model_name");
                         if (File.Exists(shotPath))
                         {
                             var bytes = File.ReadAllBytes(shotPath);

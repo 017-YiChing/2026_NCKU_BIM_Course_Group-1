@@ -106,13 +106,13 @@ func (s *Server) handleCreateIssue(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now().UTC().Format("2006-01-02 15:04:05")
 	res, err := s.DB.Exec(`INSERT INTO issues
-		(title,description,status,reporter,assignee,source,revit_element_id,ifc_global_id,model_id,screenshot,position,view_name,revit_view_id,created_at,updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?, ?,?, ?, ?)`,
+		(title,description,status,reporter,assignee,source,revit_element_id,ifc_global_id,model_id,screenshot,position,view_name,revit_view_id,model_name,created_at,updated_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?, ?,?,?, ?, ?)`,
 		title, r.FormValue("description"), status,
 		r.FormValue("reporter"), r.FormValue("assignee"), source,
 		r.FormValue("revit_element_id"), r.FormValue("ifc_global_id"), modelID,
 		screenshotName, r.FormValue("position"),
-		r.FormValue("view_name"), r.FormValue("revit_view_id"), now, now)
+		r.FormValue("view_name"), r.FormValue("revit_view_id"), r.FormValue("model_name"), now, now)
 	if err != nil {
 		writeErr(w, 500, err.Error())
 		return
@@ -128,22 +128,26 @@ func (s *Server) handleCreateIssue(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/issues?status=open
 func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT id,title,description,status,reporter,assignee,source,
-		COALESCE(revit_element_id,''),COALESCE(ifc_global_id,''),model_id,
-		COALESCE(screenshot,''),COALESCE(position,''),
-		COALESCE(view_name,''),COALESCE(revit_view_id,''),created_at,updated_at
-		FROM issues ORDER BY id DESC`
+	q := `SELECT i.id,i.title,i.description,i.status,i.reporter,i.assignee,i.source,
+		COALESCE(i.revit_element_id,''),COALESCE(i.ifc_global_id,''),i.model_id,
+		COALESCE(i.screenshot,''),COALESCE(i.position,''),
+		COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
+		COALESCE(NULLIF(i.model_name,''), m.filename, ''),
+		i.created_at,i.updated_at
+		FROM issues i LEFT JOIN models m ON m.id = i.model_id ORDER BY id DESC`
 	var args []any
 	if st := r.URL.Query().Get("status"); st != "" {
 		if !validStatus[st] {
 			writeErr(w, http.StatusBadRequest, "status 須為 open/in_progress/closed")
 			return
 		}
-		q = `SELECT id,title,description,status,reporter,assignee,source,
-			COALESCE(revit_element_id,''),COALESCE(ifc_global_id,''),model_id,
-			COALESCE(screenshot,''),COALESCE(position,''),
-			COALESCE(view_name,''),COALESCE(revit_view_id,''),created_at,updated_at
-			FROM issues WHERE status=? ORDER BY id DESC`
+		q = `SELECT i.id,i.title,i.description,i.status,i.reporter,i.assignee,i.source,
+			COALESCE(i.revit_element_id,''),COALESCE(i.ifc_global_id,''),i.model_id,
+			COALESCE(i.screenshot,''),COALESCE(i.position,''),
+			COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
+			COALESCE(NULLIF(i.model_name,''), m.filename, ''),
+			i.created_at,i.updated_at
+			FROM issues i LEFT JOIN models m ON m.id = i.model_id WHERE i.status=? ORDER BY i.id DESC`
 		args = append(args, st)
 	}
 	rows, err := s.DB.Query(q, args...)
@@ -158,7 +162,7 @@ func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.Status,
 			&it.Reporter, &it.Assignee, &it.Source, &it.RevitElementID,
 			&it.IFCGlobalID, &it.ModelID, &it.Screenshot, &it.Position,
-			&it.ViewName, &it.RevitViewID, &it.CreatedAt, &it.UpdatedAt); err != nil {
+			&it.ViewName, &it.RevitViewID, &it.ModelName, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			writeErr(w, 500, err.Error())
 			return
 		}
@@ -235,15 +239,17 @@ func (s *Server) handlePatchIssue(w http.ResponseWriter, r *http.Request) {
 
 func getIssueByID(db *sql.DB, id int64) (Issue, error) {
 	var it Issue
-	err := db.QueryRow(`SELECT id,title,description,status,reporter,assignee,source,
-		COALESCE(revit_element_id,''),COALESCE(ifc_global_id,''),model_id,
-		COALESCE(screenshot,''),COALESCE(position,''),
-		COALESCE(view_name,''),COALESCE(revit_view_id,''),created_at,updated_at
-		FROM issues WHERE id=?`, id).Scan(
+	err := db.QueryRow(`SELECT i.id,i.title,i.description,i.status,i.reporter,i.assignee,i.source,
+		COALESCE(i.revit_element_id,''),COALESCE(i.ifc_global_id,''),i.model_id,
+		COALESCE(i.screenshot,''),COALESCE(i.position,''),
+		COALESCE(i.view_name,''),COALESCE(i.revit_view_id,''),
+		COALESCE(NULLIF(i.model_name,''), m.filename, ''),
+		i.created_at,i.updated_at
+		FROM issues i LEFT JOIN models m ON m.id = i.model_id WHERE i.id=?`, id).Scan(
 		&it.ID, &it.Title, &it.Description, &it.Status, &it.Reporter,
 		&it.Assignee, &it.Source, &it.RevitElementID, &it.IFCGlobalID,
 		&it.ModelID, &it.Screenshot, &it.Position,
-		&it.ViewName, &it.RevitViewID, &it.CreatedAt, &it.UpdatedAt)
+		&it.ViewName, &it.RevitViewID, &it.ModelName, &it.CreatedAt, &it.UpdatedAt)
 	return it, err
 }
 

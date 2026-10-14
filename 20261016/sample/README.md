@@ -40,6 +40,7 @@ dotnet build -c Release.R24
 | 列表/詳情長相 | `frontend/src/App.jsx`，打 API 看 `frontend/src/api.js` |
 | Ribbon 按鈕/分頁名 | `revit-plugin/App.cs` |
 | 議題→開視圖邏輯 | `revit-plugin/OpenIssueViewCommand.cs`（先 UniqueId 找，退回用視圖名） |
+| 樹狀分組（檔案/模型） | 後端 `model_name` 欄（外掛送專案名、IFC 用檔名）；前端 `App.jsx` 分組顯示 |
 
 原則：外掛只管擷取、後端只管存取、前端只管呈現；要加功能先想它屬於哪一層。
 
