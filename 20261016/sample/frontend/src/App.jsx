@@ -68,6 +68,7 @@ export default function App() {
                 background: selectedId === it.id ? '#eef' : '#fff' }}>
               <b>#{it.id} {it.title}</b>
               <div>{STATUS_LABEL[it.status]} · {it.source} · {it.reporter}</div>
+              {it.view_name && <div>視圖：{it.view_name}</div>}
             </li>
           ))}
         </ul>
@@ -91,6 +92,7 @@ export default function App() {
             <p>{detail.description}</p>
             <p>狀態：{STATUS_LABEL[detail.status]} ｜ 回報：{detail.reporter} ｜ 指派：{detail.assignee || '—'}</p>
             <p>綁定：Revit ElementId = {detail.revit_element_id || '—'}；IFC GlobalId = {detail.ifc_global_id || '—'}</p>
+            <p>視圖：{detail.view_name || '—（舊議題無視圖，重建才有）'}</p>
             {detail.screenshot && (
               <img src={`/screenshots/${detail.screenshot}`} alt="issue screenshot"
                 style={{ maxWidth: '100%', border: '1px solid #ccc' }} />

@@ -25,6 +25,7 @@ cd revit-plugin
 dotnet build -c Release.R24
 .\install.ps1 -Version 2024
 # 重開 Revit 2024 → "RFI Sample" 分頁 → 選一個元件 → 按「建立議題」
+# 議題會記下當時視圖；要回去看按「開議題視圖」，選一筆即切到它的視圖
 ```
 
 備課機是 Revit 2026：把上面 `R24` 換成 `R26`、`-Version 2026` 即可（csproj 雙配置已備好）。
@@ -38,6 +39,7 @@ dotnet build -c Release.R24
 | 輸入視窗欄位 | `revit-plugin/IssueForm.cs` |
 | 列表/詳情長相 | `frontend/src/App.jsx`，打 API 看 `frontend/src/api.js` |
 | Ribbon 按鈕/分頁名 | `revit-plugin/App.cs` |
+| 議題→開視圖邏輯 | `revit-plugin/OpenIssueViewCommand.cs`（先 UniqueId 找，退回用視圖名） |
 
 原則：外掛只管擷取、後端只管存取、前端只管呈現；要加功能先想它屬於哪一層。
 

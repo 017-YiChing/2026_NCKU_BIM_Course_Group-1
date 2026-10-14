@@ -36,6 +36,11 @@ namespace RfiPlugin
             }
             string elementId = selIds[0].Value.ToString();
 
+            // 1b. 使用中視圖（名稱＋UniqueId 一起記；圖台顯示用名，Revit 開視圖用 Id）
+            var activeView = doc.ActiveView;
+            string viewName = activeView != null ? activeView.Name : "";
+            string viewUid = activeView != null ? activeView.UniqueId : "";
+
             // 2. 截圖：匯出使用中視圖
             string shotPath = Path.Combine(Path.GetTempPath(), $"rfi_{DateTime.Now:yyyyMMddHHmmss}.png");
             try
@@ -73,6 +78,8 @@ namespace RfiPlugin
                         content.Add(new StringContent(form.Reporter ?? ""), "reporter");
                         content.Add(new StringContent("revit"), "source");
                         content.Add(new StringContent(elementId), "revit_element_id");
+                        content.Add(new StringContent(viewName), "view_name");
+                        content.Add(new StringContent(viewUid), "revit_view_id");
                         if (File.Exists(shotPath))
                         {
                             var bytes = File.ReadAllBytes(shotPath);
@@ -87,7 +94,9 @@ namespace RfiPlugin
                             TaskDialog.Show("RFI", $"後端回錯誤 {(int)resp.StatusCode}：{body}");
                             return Result.Failed;
                         }
-                        TaskDialog.Show("RFI", "議題已送出！回到圖台網頁查看。");
+                        var m = System.Text.RegularExpressions.Regex.Match(body, @"""id""\s*:\s*(\d+)");
+                        string newId = m.Success ? m.Groups[1].Value : "?";
+                        TaskDialog.Show("RFI", $"議題已送出！圖台編號 #{newId}\nElementId = {elementId}\n視圖 = {viewName}");
                     }
                 }
                 catch (Exception ex)

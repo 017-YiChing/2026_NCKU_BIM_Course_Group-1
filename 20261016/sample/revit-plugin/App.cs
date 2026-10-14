@@ -23,6 +23,11 @@ namespace RfiPlugin
                 asm, typeof(CreateIssueCommand).FullName);
             btnData.ToolTip = "把目前選取的元件 + 使用中視圖截圖，送到 RFI 圖台後端";
             panel.AddItem(btnData);
+            var openData = new PushButtonData(
+                "OpenIssueView", "開議題視圖",
+                asm, typeof(OpenIssueViewCommand).FullName);
+            openData.ToolTip = "從圖台選一筆議題，切到它當初的視圖";
+            panel.AddItem(openData);
             return Result.Succeeded;
         }
 

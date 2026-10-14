@@ -106,12 +106,13 @@ func (s *Server) handleCreateIssue(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now().UTC().Format("2006-01-02 15:04:05")
 	res, err := s.DB.Exec(`INSERT INTO issues
-		(title,description,status,reporter,assignee,source,revit_element_id,ifc_global_id,model_id,screenshot,position,created_at,updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?, ?, ?)`,
+		(title,description,status,reporter,assignee,source,revit_element_id,ifc_global_id,model_id,screenshot,position,view_name,revit_view_id,created_at,updated_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?, ?,?, ?, ?)`,
 		title, r.FormValue("description"), status,
 		r.FormValue("reporter"), r.FormValue("assignee"), source,
 		r.FormValue("revit_element_id"), r.FormValue("ifc_global_id"), modelID,
-		screenshotName, r.FormValue("position"), now, now)
+		screenshotName, r.FormValue("position"),
+		r.FormValue("view_name"), r.FormValue("revit_view_id"), now, now)
 	if err != nil {
 		writeErr(w, 500, err.Error())
 		return
@@ -129,7 +130,8 @@ func (s *Server) handleCreateIssue(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
 	q := `SELECT id,title,description,status,reporter,assignee,source,
 		COALESCE(revit_element_id,''),COALESCE(ifc_global_id,''),model_id,
-		COALESCE(screenshot,''),COALESCE(position,''),created_at,updated_at
+		COALESCE(screenshot,''),COALESCE(position,''),
+		COALESCE(view_name,''),COALESCE(revit_view_id,''),created_at,updated_at
 		FROM issues ORDER BY id DESC`
 	var args []any
 	if st := r.URL.Query().Get("status"); st != "" {
@@ -139,7 +141,8 @@ func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
 		}
 		q = `SELECT id,title,description,status,reporter,assignee,source,
 			COALESCE(revit_element_id,''),COALESCE(ifc_global_id,''),model_id,
-			COALESCE(screenshot,''),COALESCE(position,''),created_at,updated_at
+			COALESCE(screenshot,''),COALESCE(position,''),
+			COALESCE(view_name,''),COALESCE(revit_view_id,''),created_at,updated_at
 			FROM issues WHERE status=? ORDER BY id DESC`
 		args = append(args, st)
 	}
@@ -155,7 +158,7 @@ func (s *Server) handleListIssues(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.Status,
 			&it.Reporter, &it.Assignee, &it.Source, &it.RevitElementID,
 			&it.IFCGlobalID, &it.ModelID, &it.Screenshot, &it.Position,
-			&it.CreatedAt, &it.UpdatedAt); err != nil {
+			&it.ViewName, &it.RevitViewID, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			writeErr(w, 500, err.Error())
 			return
 		}
@@ -234,11 +237,13 @@ func getIssueByID(db *sql.DB, id int64) (Issue, error) {
 	var it Issue
 	err := db.QueryRow(`SELECT id,title,description,status,reporter,assignee,source,
 		COALESCE(revit_element_id,''),COALESCE(ifc_global_id,''),model_id,
-		COALESCE(screenshot,''),COALESCE(position,''),created_at,updated_at
+		COALESCE(screenshot,''),COALESCE(position,''),
+		COALESCE(view_name,''),COALESCE(revit_view_id,''),created_at,updated_at
 		FROM issues WHERE id=?`, id).Scan(
 		&it.ID, &it.Title, &it.Description, &it.Status, &it.Reporter,
 		&it.Assignee, &it.Source, &it.RevitElementID, &it.IFCGlobalID,
-		&it.ModelID, &it.Screenshot, &it.Position, &it.CreatedAt, &it.UpdatedAt)
+		&it.ModelID, &it.Screenshot, &it.Position,
+		&it.ViewName, &it.RevitViewID, &it.CreatedAt, &it.UpdatedAt)
 	return it, err
 }
 

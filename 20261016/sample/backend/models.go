@@ -11,6 +11,8 @@ type Issue struct {
 	Source        string `json:"source"` // revit / ifc / manual
 	RevitElementID string `json:"revit_element_id"`
 	IFCGlobalID   string `json:"ifc_global_id"`
+	ViewName      string `json:"view_name"`
+	RevitViewID   string `json:"revit_view_id"`
 	ModelID       *int64 `json:"model_id"`
 	Screenshot    string `json:"screenshot"`
 	Position      string `json:"position"`

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // OpenDB opens (and creates) the SQLite file, runs migrations.
@@ -61,5 +62,18 @@ func migrate(db *sql.DB) error {
 			return fmt.Errorf("migrate: %w", err)
 		}
 	}
+	// 舊庫升級：issues 加視圖綁定欄（已存在就跳過）
+	for _, col := range []string{
+		`ALTER TABLE issues ADD COLUMN view_name TEXT DEFAULT ''`,
+		`ALTER TABLE issues ADD COLUMN revit_view_id TEXT DEFAULT ''`,
+	} {
+		if _, err := db.Exec(col); err != nil && !isDupColumnErr(err) {
+			return fmt.Errorf("migrate: %w", err)
+		}
+	}
 	return nil
+}
+
+func isDupColumnErr(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "duplicate column name")
 }
