@@ -4,6 +4,253 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RFI 議題追蹤圖台（sample）</title>
+    <style>
+      :root {
+        --topbar: #2c3e4f;
+        --topbar-border: #4a5d6e;
+        --accent: #7a9aa8;
+        --accent-light: #b8c9d0;
+        --bg: #f4f6f8;
+        --card: #ffffff;
+        --card-border: #d7dde2;
+        --text: #2c3e4f;
+        --muted: #6b7a85;
+        --camel: #a88a6e;
+        --published: #b8c9d0;
+        --draft: #9aa5ad;
+        --overdue: #c9a890;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        height: 100vh;
+        overflow: hidden;
+      }
+      #root { height: 100%; }
+
+      /* Topbar */
+      .rfi-topbar {
+        background: var(--topbar);
+        color: #fff;
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--topbar-border);
+        flex-shrink: 0;
+      }
+      .rfi-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+      .rfi-logo {
+        width: 32px; height: 32px; border-radius: 6px; background: var(--accent);
+        display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900;
+      }
+      .rfi-nav { display: flex; gap: 24px; list-style: none; font-size: 14px; flex-shrink: 0; }
+      .rfi-nav li a { color: var(--accent-light); text-decoration: none; }
+      .rfi-topbar-right { display: flex; align-items: center; gap: 14px; }
+      .rfi-avatar {
+        width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
+        color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+      }
+      .rfi-user-info { font-size: 13px; color: var(--accent-light); }
+      .btn-logout {
+        background: transparent; border: 1px solid var(--accent-light); color: var(--accent-light);
+        padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
+      }
+
+      /* Toolbar */
+      .rfi-toolbar {
+        background: #fff; border-bottom: 1px solid var(--card-border);
+        padding: 14px 24px; display: flex; align-items: center; gap: 10px;
+        flex-wrap: wrap; flex-shrink: 0;
+      }
+      .rfi-pill {
+        padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border);
+        background: #fff; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer;
+      }
+      .rfi-pill.active { border-color: var(--accent); color: var(--accent); background: #eef2f5; }
+      .rfi-pill.camel { border-color: var(--camel); color: var(--camel); background: #f7f1ea; }
+      .rfi-divider { width: 1px; height: 20px; background: var(--card-border); margin: 0 8px; }
+      .rfi-search { position: relative; width: 260px; margin-left: auto; }
+      .rfi-search::before {
+        content: "🔍"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+        color: var(--muted); font-size: 13px; pointer-events: none;
+      }
+      .rfi-search input {
+        width: 100%; padding: 6px 10px 6px 32px; border: 1px solid var(--card-border);
+        border-radius: 20px; font-size: 13px;
+      }
+      .rfi-toolbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+      .btn-refresh {
+        padding: 6px 12px; border-radius: 6px; border: 1px solid var(--card-border);
+        background: #fff; cursor: pointer; font-size: 13px;
+      }
+      .btn-add {
+        padding: 8px 16px; border-radius: 8px; background: var(--camel); color: #fff;
+        border: none; font-weight: 700; cursor: pointer; font-size: 13px;
+      }
+      .rfi-err { background: #fdecea; color: #c0392b; padding: 8px 24px; font-size: 13px; border-bottom: 1px solid #f5c6c7; flex-shrink: 0; }
+
+      /* Grid */
+      .rfi-main { flex: 1; overflow: auto; padding: 24px; }
+      .rfi-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;
+      }
+      .rfi-card {
+        background: var(--card); border-radius: 12px; border: 1px solid var(--card-border);
+        display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(44,62,79,0.04);
+      }
+      .rfi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(44,62,79,0.08); }
+      .rfi-card.highlight {
+        background: linear-gradient(135deg, var(--topbar), var(--topbar-border));
+        color: #fff; border-color: var(--accent);
+      }
+      .rfi-card.empty {
+        border: 2px dashed var(--card-border); background: #fafbfc;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 40px 20px; color: var(--muted); cursor: pointer;
+      }
+      .rfi-card.empty:hover { border-color: var(--accent); color: var(--accent); }
+      .rfi-card-header {
+        display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px 16px;
+      }
+      .rfi-avatar {
+        width: 40px; height: 40px; border-radius: 50%; background: var(--card-border);
+        color: var(--text); display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 15px; flex-shrink: 0;
+      }
+      .rfi-avatar.owner { background: var(--accent); color: #fff; }
+      .rfi-user-info { flex: 1; min-width: 0; }
+      .rfi-name { font-weight: 700; font-size: 15px; }
+      .rfi-role { font-size: 12px; color: var(--muted); }
+      .rfi-card.highlight .rfi-name, .rfi-card.highlight .rfi-role { color: #fff; }
+      .rfi-card-actions { margin-left: 8px; font-size: 12; color: var(--muted); }
+      .rfi-card-body { padding: 0 16px 10px 16px; flex: 1; }
+      .rfi-title { font-size: 19px; font-weight: 700; margin-bottom: 5px; line-height: 1.25; }
+      .rfi-due { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+      .rfi-progress-wrap { margin-bottom: 10px; }
+      .rfi-progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+      .rfi-progress-track { height: 5px; background: var(--card-border); border-radius: 3px; overflow: hidden; }
+      .rfi-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--camel)); border-radius: 3px; }
+      .rfi-highlight .rfi-progress-fill { background: #fff; }
+      .rfi-stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+      .rfi-stat { text-align: center; }
+      .rfi-stat .num { display: block; font-weight: 800; color: var(--text); }
+      .rfi-card.highlight .rfi-stat .num { color: #fff; }
+      .rfi-card.highlight .rfi-stat .lbl { color: rgba(255,255,255,0.8); }
+      .rfi-card-footer {
+        padding: 8px 16px 14px 16px; border-top: 1px solid var(--card-border);
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .rfi-badge {
+        display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+        border-radius: 12px; font-size: 11px; font-weight: 700;
+      }
+      .rfi-badge.published { background: var(--published); color: var(--topbar); }
+      .rfi-badge.draft { background: var(--draft); color: #fff; }
+      .rfi-badge.overdue { background: var(--overdue); color: #5d4037; }
+      .rfi-card.highlight .rfi-badge { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+      .btn-review {
+        background: rgba(44,62,79,0.05); border: 1px solid rgba(44,62,79,0.15);
+        color: var(--topbar); padding: 6px 14px; border-radius: 20px;
+        font-weight: 700; font-size: 12px; cursor: pointer;
+      }
+      .rfi-card.highlight .btn-review {
+        background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #fff;
+      }
+
+      /* Login */
+      .rfi-login {
+        height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg);
+      }
+      .rfi-login-card {
+        background: #fff; padding: 40px; border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(44,62,79,0.1); width: 400px; text-align: center;
+      }
+      .rfi-login h2 { margin-bottom: 8px; color: var(--text); font-size: 24px; }
+      .rfi-login p.hint { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+      .rfi-field { text-align: left; margin-bottom: 16px; }
+      .rfi-field label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+      .rfi-field input {
+        width: 100%; padding: 10px; border: 1px solid var(--card-border);
+        border-radius: 8px; font-size: 14px; box-sizing: border-box;
+      }
+      .rfi-roles { display: flex; gap: 10px; justify-content: center; margin-bottom: 24px; }
+      .rfi-role-chip {
+        padding: 10px; border: 1px solid var(--card-border); border-radius: 8px;
+        font-size: 13px; cursor: pointer; color: var(--muted); flex: 1;
+      }
+      .rfi-role-chip.selected { border-color: var(--accent); color: var(--accent); font-weight: 700; background: #eef2f5; }
+      .btn-primary {
+        width: 100%; padding: 10px; background: var(--topbar); color: #fff;
+        border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px;
+      }
+      .btn-camel {
+        width: 100%; padding: 10px; background: var(--camel); color: #fff;
+        border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px;
+      }
+
+      /* Modals */
+      .rfi-modal-backdrop {
+        position: fixed; inset: 0; background: rgba(44,62,79,0.35);
+        z-index: 1000; display: flex; align-items: center; justify-content: center;
+      }
+      .rfi-modal {
+        background: #fff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(44,62,79,0.1);
+        display: flex; flex-direction: column; overflow: hidden;
+      }
+      .rfi-modal.create { width: 420px; max-width: 90vw; }
+      .rfi-modal.detail { width: 600px; max-width: 92vw; max-height: 85vh; }
+      .rfi-modal-header {
+        background: var(--topbar); color: #fff; padding: 16px 24px;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .rfi-modal-body { padding: 24px; overflow-y: auto; }
+      .rfi-modal-footer {
+        padding: 14px 24px; border-top: 1px solid var(--card-border);
+        display: flex; gap: 8px; justify-content: flex-end;
+      }
+      .rfi-modal h3 { margin-bottom: 16px; color: var(--text); font-size: 18px; }
+      .rfi-form { display: grid; gap: 10px; }
+      .rfi-form label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+      .rfi-form input, .rfi-form select, .rfi-form textarea {
+        width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; box-sizing: border-box;
+      }
+      .rfi-form-row { display: flex; gap: 8px; margin-top: 12px; }
+      .rfi-btn-cancel {
+        flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--card-border);
+        background: #fff; cursor: pointer; font-size: 13px;
+      }
+      .rfi-btn-submit {
+        flex: 1; padding: 10px; border-radius: 6px; background: var(--camel); color: #fff;
+        border: none; font-weight: 700; cursor: pointer; font-size: 13px;
+      }
+      .rfi-btn-modal {
+        padding: 6px 14px; border-radius: 6px; border: 1px solid var(--card-border);
+        background: #fff; cursor: pointer; font-size: 13px;
+      }
+      .rfi-btn-delete {
+        padding: 6px 14px; border-radius: 6px; background: #c0392b; color: #fff;
+        border: none; cursor: pointer; font-size: 13px;
+      }
+      .rfi-btn-close {
+        background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer;
+      }
+      .rfi-detail p { margin-bottom: 8px; }
+      .rfi-detail hr { border: none; border-top: 1px solid var(--card-border); margin: 16px 0; }
+      .rfi-detail img { max-width: 100%; margin-top: 10px; border: 1px solid var(--card-border); border-radius: 6px; }
+
+      /* FAB */
+      .rfi-fab {
+        position: fixed; right: 24px; bottom: 24px; width: 56px; height: 56px;
+        border-radius: 50%; background: var(--topbar); color: #fff; border: none;
+        font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(44,62,79,0.15);
+        display: flex; align-items: center; justify-content: center; z-index: 100;
+      }
+      .rfi-fab:hover { background: var(--accent); }
+    </style>
   </head>
   <body>
     <div id="root"></div>

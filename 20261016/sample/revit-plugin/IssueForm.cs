@@ -15,14 +15,16 @@ namespace RfiPlugin
         public string IssueTitle => _title.Text.Trim();
         public string IssueDescription => _desc.Text.Trim();
         public string Reporter => _reporter.Text.Trim();
+        public string ApiToken => _apiToken.Text.Trim();
+
+        private readonly TextBox _apiToken = new TextBox();
 
         public IssueForm(string defaultReporter = "")
         {
             Text = "建立 RFI 議題";
-            Size = new Size(500, 500);
-            MinimumSize = new Size(420, 400);
+            Size = new Size(500, 560);
+            MinimumSize = new Size(420, 460);
             StartPosition = FormStartPosition.CenterParent;
-            // 可調大小＋右下角拖拉 grip（課上 demo 要大要小自己拉）
             FormBorderStyle = FormBorderStyle.Sizable;
             SizeGripStyle = SizeGripStyle.Show;
             MaximizeBox = false;
@@ -54,7 +56,14 @@ namespace RfiPlugin
             y += 32;
             _reporter.Top = y; _reporter.Left = left; _reporter.Width = width; _reporter.Height = 34; _reporter.Name = "txtReporter";
             _reporter.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            _reporter.Text = defaultReporter ?? ""; // 預設 Revit Username，可刪改
+            _reporter.Text = defaultReporter ?? "";
+            y += 58;
+
+            var lbl4 = new Label { Text = "API Token（可選，多使用者認證）", Top = y, Left = left, Width = width, Height = 28, Name = "lblApiToken" };
+            lbl4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            y += 32;
+            _apiToken.Top = y; _apiToken.Left = left; _apiToken.Width = width; _apiToken.Height = 34; _apiToken.Name = "txtApiToken";
+            _apiToken.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             y += 58;
 
             var ok = new Button { Text = "送出", DialogResult = DialogResult.OK, Top = y, Left = left + width - 200, Width = 96, Height = 36 };
@@ -70,7 +79,7 @@ namespace RfiPlugin
                 }
             };
 
-            Controls.AddRange(new Control[] { lbl1, _title, lbl2, _desc, lbl3, _reporter, ok, cancel });
+            Controls.AddRange(new Control[] { lbl1, _title, lbl2, _desc, lbl3, _reporter, lbl4, _apiToken, ok, cancel });
             AcceptButton = ok;
             CancelButton = cancel;
         }

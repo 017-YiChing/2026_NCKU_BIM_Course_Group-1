@@ -9,8 +9,8 @@
     <PlatformTarget>x64</PlatformTarget>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
-    <!-- 多版本：dotnet build -c Release.R24（學生，教室）/ -c Release.R26（備課機） -->
-    <Configurations>Debug;Release;Release.R24;Release.R26</Configurations>
+    <!-- 多版本：dotnet build -c Release.R24（學生，教室）/ -c Release.R26（備課機）/ -c Release.R27（Revit 2027） -->
+    <Configurations>Debug;Release;Release.R24;Release.R26;Release.R27</Configurations>
     <RevitVersion>2024</RevitVersion>
   </PropertyGroup>
 
@@ -24,15 +24,21 @@
     <OutputPath>bin\Release.R26\</OutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release.R27'">
+    <RevitVersion>2027</RevitVersion>
+    <OutputPath>bin\Release.R27\</OutputPath>
+  </PropertyGroup>
+
+
   <!-- RevitAPI 從本機對應版本安裝目錄引用；
-       有裝該版 Revit 才能 build 該配置（學生 build R24、備課機 build R26）。 -->
+       有裝該版 Revit 才能 build 該配置（學生 build R24、備課機 build R26、Revit 2027 於 D:）。 -->
   <ItemGroup>
     <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit $(RevitVersion)\RevitAPI.dll</HintPath>
+      <HintPath>D:\Revit $(RevitVersion)\RevitAPI.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit $(RevitVersion)\RevitAPIUI.dll</HintPath>
+      <HintPath>D:\Revit $(RevitVersion)\RevitAPIUI.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

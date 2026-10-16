@@ -75,33 +75,37 @@ namespace RfiPlugin
                 try
                 {
                     using (var http = new HttpClient())
-                    using (var content = new MultipartFormDataContent())
                     {
-                        content.Add(new StringContent(form.IssueTitle), "title");
-                        content.Add(new StringContent(form.IssueDescription ?? ""), "description");
-                        content.Add(new StringContent(form.Reporter ?? ""), "reporter");
-                        content.Add(new StringContent("revit"), "source");
-                        content.Add(new StringContent(elementId), "revit_element_id");
-                        content.Add(new StringContent(viewName), "view_name");
-                        content.Add(new StringContent(viewUid), "revit_view_id");
-                        content.Add(new StringContent(modelName ?? ""), "model_name");
-                        if (File.Exists(shotPath))
+                        if (!string.IsNullOrWhiteSpace(form.ApiToken))
+                            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", form.ApiToken);
+                        using (var content = new MultipartFormDataContent())
                         {
-                            var bytes = File.ReadAllBytes(shotPath);
-                            var img = new ByteArrayContent(bytes);
-                            img.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
-                            content.Add(img, "screenshot", Path.GetFileName(shotPath));
+                            content.Add(new StringContent(form.IssueTitle), "title");
+                            content.Add(new StringContent(form.IssueDescription ?? ""), "description");
+                            content.Add(new StringContent(form.Reporter ?? ""), "reporter");
+                            content.Add(new StringContent("revit"), "source");
+                            content.Add(new StringContent(elementId), "revit_element_id");
+                            content.Add(new StringContent(viewName), "view_name");
+                            content.Add(new StringContent(viewUid), "revit_view_id");
+                            content.Add(new StringContent(modelName ?? ""), "model_name");
+                            if (File.Exists(shotPath))
+                            {
+                                var bytes = File.ReadAllBytes(shotPath);
+                                var img = new ByteArrayContent(bytes);
+                                img.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+                                content.Add(img, "screenshot", Path.GetFileName(shotPath));
+                            }
+                            var resp = http.PostAsync(BackendBase + "/api/issues", content).Result;
+                            string body = resp.Content.ReadAsStringAsync().Result;
+                            if (!resp.IsSuccessStatusCode)
+                            {
+                                TaskDialog.Show("RFI", $"後端回錯誤 {(int)resp.StatusCode}：{body}");
+                                return Result.Failed;
+                            }
+                            var m = System.Text.RegularExpressions.Regex.Match(body, @"""id""\s*:\s*(\d+)");
+                            string newId = m.Success ? m.Groups[1].Value : "?";
+                            TaskDialog.Show("RFI", $"議題已送出！圖台編號 #{newId}\nElementId = {elementId}\n視圖 = {viewName}");
                         }
-                        var resp = http.PostAsync(BackendBase + "/api/issues", content).Result;
-                        string body = resp.Content.ReadAsStringAsync().Result;
-                        if (!resp.IsSuccessStatusCode)
-                        {
-                            TaskDialog.Show("RFI", $"後端回錯誤 {(int)resp.StatusCode}：{body}");
-                            return Result.Failed;
-                        }
-                        var m = System.Text.RegularExpressions.Regex.Match(body, @"""id""\s*:\s*(\d+)");
-                        string newId = m.Success ? m.Groups[1].Value : "?";
-                        TaskDialog.Show("RFI", $"議題已送出！圖台編號 #{newId}\nElementId = {elementId}\n視圖 = {viewName}");
                     }
                 }
                 catch (Exception ex)
