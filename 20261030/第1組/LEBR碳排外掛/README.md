@@ -14,7 +14,13 @@
 4. 按「開始計算」
 5. 匯出結果
 
-> **注意**：GitHub 上的版本**沒有編譯好的外掛**（依本 repo 規則不放 DLL），雙擊 `安裝外掛.bat` 會提示找不到檔案。請向組員索取「外掛交接包」或「完整交接包」壓縮檔，裡面已附 Revit 2024～2027 四個版本。
+> **下載**：GitHub 這裡只放原始碼與文件（本 repo 規則不放 DLL 與 .rvt）。**要直接使用，請到 [下載頁](https://github.com/017-YiChing/2026_NCKU_BIM_Course_Group-1/releases/tag/lebr-handover-20261024) 下載壓縮檔**，解壓縮後雙擊「安裝外掛.bat」。
+
+| 我要 | 下載這個 |
+|---|---|
+| 用外掛算碳排 | [LEBR-addin-package-20261024.zip](https://github.com/017-YiChing/2026_NCKU_BIM_Course_Group-1/releases/download/lebr-handover-20261024/LEBR-addin-package-20261024.zip)（外掛交接包，含 Revit 2024～2027 外掛、測試模型） |
+| 接手資料庫 | [LEBR-database-package-20261024.zip](https://github.com/017-YiChing/2026_NCKU_BIM_Course_Group-1/releases/download/lebr-handover-20261024/LEBR-database-package-20261024.zip)（資料庫交接包） |
+| 全部 | [LEBR-full-package-20261024.zip](https://github.com/017-YiChing/2026_NCKU_BIM_Course_Group-1/releases/download/lebr-handover-20261024/LEBR-full-package-20261024.zip)（完整交接包） |
 
 ## 我要接手或開發
 
@@ -38,8 +44,4 @@
 
 ## 不在 repo 裡的東西
 
-依本 repo 規則，下列檔案不放進 Git，請向組內索取交接包壓縮檔：
-
-- 編譯好的外掛（`已編譯外掛/Revit2024`～`Revit2027`）
-- 測試模型 `LEBR_test.rvt`（課程模型複本，已填好代號）
-- 手冊 PDF（內政部建築研究所網站下載）
+依本 repo 規則，編譯好的外掛、測試模型 `LEBR_test.rvt` 不提交進 Git，改放在上面的[下載頁](https://github.com/017-YiChing/2026_NCKU_BIM_Course_Group-1/releases/tag/lebr-handover-20261024)。手冊 PDF 請自行從內政部建築研究所網站下載。

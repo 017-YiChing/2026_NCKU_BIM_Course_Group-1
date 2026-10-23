@@ -37,7 +37,7 @@ foreach ($v in $installed) {
 
     $src = Join-Path $prebuilt "Revit$v"
     if (-not (Test-Path (Join-Path $src "LebrCarbon.dll"))) {
-        Write-Host "Revit $v：找不到「已編譯外掛\Revit$v」，略過。（從 GitHub 下載的版本沒有編譯檔，請向組員索取交接包，或用 lebr-db\revit-addin\install.ps1 自行編譯）" -ForegroundColor Yellow
+        Write-Host "Revit $v：找不到「已編譯外掛\Revit$v」，略過。你下載的可能是 GitHub 原始碼，裡面沒有編譯好的外掛。請到 https://github.com/017-YiChing/2026_NCKU_BIM_Course_Group-1/releases/tag/lebr-handover-20261024 下載 LEBR-addin-package-20261024.zip，解壓縮後再雙擊「安裝外掛.bat」。" -ForegroundColor Yellow
         continue
     }
     New-Item -ItemType Directory -Force $addins | Out-Null
