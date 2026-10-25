@@ -31,6 +31,7 @@
 | 只負責資料庫 | [lebr-db/交接說明_資料庫.md](lebr-db/交接說明_資料庫.md) |
 | 只負責外掛 | [lebr-db/交接說明_外掛.md](lebr-db/交接說明_外掛.md) |
 | 想看資料格式、構件代號規則 | [lebr-db/README.md](lebr-db/README.md) |
+| 想知道外掛怎麼設計、公式怎麼算 | [計畫書](lebr-db/計畫書/計畫書.md)、[公式運算邏輯](lebr-db/計畫書/公式運算邏輯.md) |
 
 ## 現況
 
