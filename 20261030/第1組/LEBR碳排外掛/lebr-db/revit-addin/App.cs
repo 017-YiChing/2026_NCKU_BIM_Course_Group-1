@@ -43,6 +43,13 @@ namespace LebrCarbon
                 LargeImage = Icon(32, "S", Color.FromRgb(0x2E, 0x6F, 0x9E)),
                 Image = Icon(16, "S", Color.FromRgb(0x2E, 0x6F, 0x9E)),
             });
+            panel.AddItem(new PushButtonData(
+                "LebrCodes", "代號\nJSON", Assembly.GetExecutingAssembly().Location, typeof(Revit.CodesCommand).FullName)
+            {
+                ToolTip = "把這個模型填好的 LEBR 代號匯出成 JSON，或把別人的代號 JSON 套用到這個模型（會自動建立參數）",
+                LargeImage = Icon(32, "{ }", Color.FromRgb(0x8A, 0x5A, 0x1F)),
+                Image = Icon(16, "{ }", Color.FromRgb(0x8A, 0x5A, 0x1F)),
+            });
             var button = new PushButtonData(
                 "LebrCalculate", "開始\n計算", Assembly.GetExecutingAssembly().Location, typeof(CalculateCommand).FullName)
             {

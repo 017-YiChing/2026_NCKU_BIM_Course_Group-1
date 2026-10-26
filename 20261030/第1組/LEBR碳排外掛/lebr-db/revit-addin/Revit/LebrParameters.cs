@@ -34,7 +34,7 @@ namespace LebrCarbon.Revit
         public const string CodeBody = "LEBR_Code_Body";
         public const string Exclude = "LEBR_Exclude";
 
-        private static readonly BuiltInCategory[] ComponentCategories =
+        public static readonly BuiltInCategory[] ComponentCategories =
         {
             BuiltInCategory.OST_Walls, BuiltInCategory.OST_Windows,
             BuiltInCategory.OST_CurtainWallPanels, BuiltInCategory.OST_Floors,
