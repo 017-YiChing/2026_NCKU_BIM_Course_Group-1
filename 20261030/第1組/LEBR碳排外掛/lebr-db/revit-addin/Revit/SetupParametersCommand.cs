@@ -23,6 +23,35 @@ namespace LebrCarbon.Revit
                 return Result.Cancelled;
             }
 
+            List<string> added;
+            try
+            {
+                added = Ensure(doc);
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                TaskDialog.Show("LEBR", "建立參數失敗：" + ex.Message);
+                return Result.Failed;
+            }
+
+            var dialog = new TaskDialog("LEBR 參數")
+            {
+                MainInstruction = added.Count > 0 ? "已建立 " + added.Count + " 個 LEBR 參數" : "LEBR 參數都已存在",
+                MainContent =
+                    "接下來請填：\n" +
+                    "1. 牆、窗、帷幕嵌板、樓板的「類型性質」→ LEBR_Code（外牆本體另填 LEBR_Code_Body）。\n" +
+                    "2. 管理 → 專案資訊 → LEBR_WearClass、LEBR_Structure、LEBR_UseType 與結構參數（I、SaD、Fu、L、D0、Rs）。\n" +
+                    "3. 不計入的元件（樓梯間牆、分戶牆、停車場地坪等）勾選 LEBR_Exclude。\n\n" +
+                    "代號請對照 LEBR 資料庫 README 的編號規則。",
+            };
+            dialog.Show();
+            return Result.Succeeded;
+        }
+
+        /// <summary>建立缺少的 LEBR 參數，已存在的不重複建立。不顯示對話框；失敗時拋出例外。回傳本次新增的參數名稱。</summary>
+        public static List<string> Ensure(Document doc)
+        {
             var app = doc.Application;
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var file = Path.Combine(folder, "LEBR_SharedParams.txt");
@@ -65,29 +94,11 @@ namespace LebrCarbon.Revit
                     t.Commit();
                 }
             }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                TaskDialog.Show("LEBR", "建立參數失敗：" + ex.Message);
-                return Result.Failed;
-            }
             finally
             {
                 app.SharedParametersFilename = original;
             }
-
-            var dialog = new TaskDialog("LEBR 參數")
-            {
-                MainInstruction = added.Count > 0 ? "已建立 " + added.Count + " 個 LEBR 參數" : "LEBR 參數都已存在",
-                MainContent =
-                    "接下來請填：\n" +
-                    "1. 牆、窗、帷幕嵌板、樓板的「類型性質」→ LEBR_Code（外牆本體另填 LEBR_Code_Body）。\n" +
-                    "2. 管理 → 專案資訊 → LEBR_WearClass、LEBR_Structure、LEBR_UseType 與結構參數（I、SaD、Fu、L、D0、Rs）。\n" +
-                    "3. 不計入的元件（樓梯間牆、分戶牆、停車場地坪等）勾選 LEBR_Exclude。\n\n" +
-                    "代號請對照 LEBR 資料庫 README 的編號規則。",
-            };
-            dialog.Show();
-            return Result.Succeeded;
+            return added;
         }
     }
 }
