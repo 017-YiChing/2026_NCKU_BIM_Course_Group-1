@@ -13,6 +13,7 @@
     <Compile Include="..\LebrDatabase.cs" Link="LebrDatabase.cs" />
     <!-- 資料庫交接包沒有 LebrEngine.cs，此時只跑資料庫測試 -->
     <Compile Include="..\LebrEngine.cs" Link="LebrEngine.cs" Condition="Exists('..\LebrEngine.cs')" />
+    <Compile Include="..\ProjectSettingsRules.cs" Link="ProjectSettingsRules.cs" />
   </ItemGroup>
 
   <ItemGroup>

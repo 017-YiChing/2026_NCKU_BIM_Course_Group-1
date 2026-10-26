@@ -10,6 +10,9 @@ namespace LebrDatabaseTests
         /// <summary>用手冊附錄三（p.65～93）的數量重現手冊的計算結果。</summary>
         static partial void TestEngine(LebrDatabase db, string samplePath)
         {
+            TestProjectSettingsRules(db);
+            TestBaselineIndependentOfDesignSpF(db, samplePath);
+
             var calc = new LebrCalculator(db);
             var r = calc.Calculate(QuantityInput.Load(samplePath));
 
