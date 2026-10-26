@@ -148,6 +148,8 @@ namespace RevitMCP.Lebr
         public double BaselineF { get; set; }
         public double Lccr { get; set; }
         public double Rn { get; set; }
+        /// <summary>基準案 EBF = 0，Rn = 1.0。</summary>
+        public double BaselineRn { get; set; }
     }
 
     public class ItemResult
@@ -426,8 +428,6 @@ namespace RevitMCP.Lebr
             if (p.L == null) missing.Add("活載重 L");
             if (p.D0 == null) missing.Add("額外靜載重 D0");
             if (b.BH == null) missing.Add("一樓樓高 BH");
-            if (b.Sp == null) missing.Add("跨距變化 Sp");
-            if (b.F == null) missing.Add("形狀係數 F");
             if (missing.Count > 0)
             {
                 Add(issues, IssueLevel.Error, "主結構未計算，缺少：" + string.Join("、", missing) + "。等級僅供參考。");
@@ -443,20 +443,32 @@ namespace RevitMCP.Lebr
             double afu = b.AFu.Value, s = b.S.Value;
             var floors = (int)Math.Round(s);
             var d = result.Structure;
-            d.DesignW = _db.StructureFactorW(structure);
-            d.DesignSp = b.Sp.Value;
-            d.DesignF = b.F.Value;
+
+            // 基準案：只依樓層與 AFa 查表 4-6，不讀取設計案的 Sp、F；基準案 EBF = 0（Rn = 1.0）
             d.BaselineW = _db.BaselineW(floors);
             d.BaselineSp = _db.BaselineSp(floors, afu / s);
             d.BaselineF = _db.BaselineShapeF(floors);
+            d.BaselineRn = 1.0;
+            d.BaselineC = StructureC(s, p.I.Value, p.SaD.Value, p.Fu.Value, d.BaselineSp, p.D0.Value, p.L.Value, b.BH.Value, rs.Value, d.BaselineF);
+            result.Baseline.CFs = afu * d.BaselineC * d.BaselineW * d.BaselineRn;
+
+            // 設計案：Sp、F 缺少只影響設計案
+            if (b.Sp == null || b.F == null)
+            {
+                var designMissing = new List<string>();
+                if (b.Sp == null) designMissing.Add("跨距變化 Sp");
+                if (b.F == null) designMissing.Add("形狀係數 F");
+                Add(issues, IssueLevel.Error, "設計案主結構未計算，缺少：" + string.Join("、", designMissing) + "。基準案仍已計算。等級僅供參考。");
+                return false;
+            }
+            d.DesignW = _db.StructureFactorW(structure);
+            d.DesignSp = b.Sp.Value;
+            d.DesignF = b.F.Value;
             var lowCarbonConcrete = structure == "RC" || structure == "SRC" || structure == "S";
             d.Lccr = lowCarbonConcrete ? 1.0 - p.CSER * _db.Parameters.Constant("low_carbon_concrete_LCCR", "cser_coef") : 1.0;
             d.Rn = (afu - p.EBF) / afu;
-
             d.DesignC = StructureC(s, p.I.Value, p.SaD.Value, p.Fu.Value, d.DesignSp, p.D0.Value, p.L.Value, b.BH.Value, rs.Value, d.DesignF);
-            d.BaselineC = StructureC(s, p.I.Value, p.SaD.Value, p.Fu.Value, d.BaselineSp, p.D0.Value, p.L.Value, b.BH.Value, rs.Value, d.BaselineF);
             result.Design.CFs = afu * d.DesignC * d.DesignW * d.Lccr * d.Rn;
-            result.Baseline.CFs = afu * d.BaselineC * d.BaselineW;
             d.Computed = true;
             return true;
         }
