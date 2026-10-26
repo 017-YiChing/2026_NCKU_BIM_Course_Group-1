@@ -162,9 +162,10 @@ dotnet run --project revit-addin/Preview -- . shots --interactive
 
 1. 按 LEBR →「建立參數」：加入 `LEBR_Code`（牆、窗、帷幕嵌板、樓板類型）、`LEBR_Code_Body`（外牆本體）、`LEBR_Exclude`（不計入），以及專案資訊的 `LEBR_WearClass`、`LEBR_Structure`、`LEBR_UseType`、`LEBR_I`、`LEBR_SaD`、`LEBR_Fu`、`LEBR_L`、`LEBR_D0`、`LEBR_Rs`、`LEBR_CSER`、`LEBR_LL`，與選填的 `LEBR_AFu`、`LEBR_Sp`、`LEBR_F` 等覆寫值。
 2. 在類型與專案資訊填好後，按「開始計算」，預設從目前模型擷取。
+   - 「代號 JSON」按鈕可把已填好的 `LEBR_Code`、`LEBR_Code_Body`、專案資訊與 `LEBR_Exclude` 匯出成 JSON，或套用到另一個模型（格式 `lebr-codes`，範例 `samples/test_model_codes.json`）。類型依品類 + 類型名稱對應（族群名稱會因 Revit 語言不同而不同，所以不強制相符）；不計入元件先比元件 ID，再比同品類、同類型、同樓層。
 3. 擷取規則：牆用 `HOST_AREA_COMPUTED`（已扣開口），窗用寬 × 高，帷幕嵌板用面積；沒填代號的結構性內牆與樓板視為主結構；樓地板面積優先用房間，沒有房間時用樓板（最高層樓板視為屋頂板）；Sp 由直線格線計算；F 由各層最大樓板外框計算 f1 × f2，f3 以 1.0 計。
 
-另外也可以選手冊附錄三範例或載入數量檔。引擎用附錄三自動測試，結果與手冊相差 0.05% 以內（差異來自手冊中間值的四捨五入與筆誤，見計畫書「公式運算邏輯」分頁）。
+另外也可以選手冊附錄三範例或載入數量檔。引擎用附錄三自動測試，結果與手冊相差 0.05% 以內（差異來自手冊中間值的四捨五入與筆誤，見 `計畫書/公式運算邏輯.md` 第三節）。
 
 ## 已知的手冊問題
 
