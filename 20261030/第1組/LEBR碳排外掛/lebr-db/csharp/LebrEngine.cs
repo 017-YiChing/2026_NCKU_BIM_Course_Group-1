@@ -75,6 +75,8 @@ namespace LebrCarbon
         [JsonProperty("reuse_reduction")] public double ReuseReduction { get; set; }
         [JsonProperty("low_carbon_material_reduction")] public double LowCarbonMaterialReduction { get; set; }
         [JsonProperty("low_carbon_method_reduction")] public double LowCarbonMethodReduction { get; set; }
+        /// <summary>結構碳排估算值（LEBR_CFs）。有值（大於 0）時作為設計案 CFs，略過 Sp、F 計算；不再套用 Lccr 與 Rn。</summary>
+        [JsonProperty("structure_CFs")] public double? StructureCFs { get; set; }
     }
 
     public class ComponentQuantity
@@ -451,6 +453,15 @@ namespace LebrCarbon
             d.BaselineRn = 1.0;
             d.BaselineC = StructureC(s, p.I.Value, p.SaD.Value, p.Fu.Value, d.BaselineSp, p.D0.Value, p.L.Value, b.BH.Value, rs.Value, d.BaselineF);
             result.Baseline.CFs = afu * d.BaselineC * d.BaselineW * d.BaselineRn;
+
+            // 設計案：結構碳排估算值有值時直接採用（介面規格第四節）
+            if (p.StructureCFs.HasValue && p.StructureCFs.Value > 0)
+            {
+                result.Design.CFs = p.StructureCFs.Value;
+                d.Computed = true;
+                Add(issues, IssueLevel.Info, "設計案主結構 CFs 採用結構碳排估算值（LEBR_CFs），未以 Sp、F 計算。");
+                return true;
+            }
 
             // 設計案：Sp、F 缺少只影響設計案
             if (b.Sp == null || b.F == null)

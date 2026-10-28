@@ -8,7 +8,54 @@ namespace LebrDatabaseTests
     /// <summary>結構碳排估算測試：附錄一讀取、CFsn 手算、地上與地下分類、迴圈與錯誤處理。</summary>
     internal static partial class Program
     {
-        static partial void TestEstimate(string csvPath)
+        static partial void TestEstimate(LebrDatabase db, string samplePath, string csvPath)
+        {
+            Section("估算：結構碳排估算值覆寫引擎");
+            var baseline = new LebrCalculator(db).Calculate(QuantityInput.Load(samplePath));
+            var overridden = QuantityInput.Load(samplePath);
+            overridden.Project.StructureCFs = baseline.Design.CFs;
+            var r7 = new LebrCalculator(db).Calculate(overridden);
+            Equal("覆寫後完整", true, r7.Complete);
+            Near("覆寫後設計案 CFs 等於估算值", baseline.Design.CFs, r7.Design.CFs);
+            Near("覆寫後 CFR 與原計算相同（不重複套用 Lccr、Rn）", baseline.CFR.Value, r7.CFR.Value);
+            Equal("覆寫後等級相同", baseline.Grade, r7.Grade);
+            Equal("覆寫有說明訊息", true, r7.Issues.Any(i => i.Message.Contains("LEBR_CFs")));
+
+            var noSpF = QuantityInput.Load(samplePath);
+            noSpF.Building.Sp = null;
+            noSpF.Building.F = null;
+            noSpF.Project.StructureCFs = baseline.Design.CFs;
+            var r8 = new LebrCalculator(db).Calculate(noSpF);
+            Equal("估算值存在時不需要 Sp、F", true, r8.Complete);
+            Near("估算值存在時不需要 Sp、F，CFs 仍為估算值", baseline.Design.CFs, r8.Design.CFs);
+
+            var zero = QuantityInput.Load(samplePath);
+            zero.Project.StructureCFs = 0;
+            var r9 = new LebrCalculator(db).Calculate(zero);
+            Near("估算值為 0 時視為未估算，CFs 依 Sp、F 計算", baseline.Design.CFs, r9.Design.CFs);
+
+            Section("估算：數量列轉換（ToItems）");
+            var rows = new List<EstimateQuantityRow>
+            {
+                new EstimateQuantityRow { Source = "StructuralColumns", Level = "Level 1", ElevationM = 0, Quantity = 10, Unit = "m3" },
+                new EstimateQuantityRow { Source = "Rebar", Level = "Level 1", ElevationM = 0, Quantity = 1000, Unit = "kg", IsRebar = true },
+            };
+            var map = new Dictionary<string, string> { { "StructuralColumns", "PLCC-040" }, { "Rebar", "PLCC-003" } };
+            var items = EstimateQuantities.ToItems(rows, map);
+            Equal("轉換後筆數", 2, items.Count);
+            Equal("鋼筋列標記為鋼筋", true, items[1].IsRebar);
+            Equal("材料編號對應", "PLCC-040", items[0].MaterialId);
+            var missingMap = new Dictionary<string, string> { { "StructuralColumns", "PLCC-040" } };
+            Throws("缺少鋼筋材料選擇報錯", () => EstimateQuantities.ToItems(rows, missingMap));
+
+            var table = PLccTable.Load(csvPath);
+            var viaEstimator = new StructureEstimator(table).Calculate(items);
+            Near("轉換後估算 CFs = 10×243.78 + 1000×1.15", 3587.8, viaEstimator.CFs);
+
+            TestEstimateTables(csvPath);
+        }
+
+        private static void TestEstimateTables(string csvPath)
         {
             Section("估算：附錄一讀取");
             var table = PLccTable.Load(csvPath);

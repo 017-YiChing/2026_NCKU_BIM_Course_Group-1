@@ -74,6 +74,8 @@ namespace LebrCarbon.Revit
             new LebrParamDef("LEBR_BH", SpecTypeId.Number, "6f1c2a10-4b3e-4c8a-9a51-0d2e7b3c4a1f", ParamTarget.Project, "（選填）一樓樓高 m", ProjectInfo),
             new LebrParamDef("LEBR_Sp", SpecTypeId.Number, "6f1c2a10-4b3e-4c8a-9a51-0d2e7b3c4a20", ParamTarget.Project, "（選填）跨距變化係數 Sp，填了就不用格線計算", ProjectInfo),
             new LebrParamDef("LEBR_F", SpecTypeId.Number, "6f1c2a10-4b3e-4c8a-9a51-0d2e7b3c4a21", ParamTarget.Project, "（選填）形狀係數 F = f1×f2×f3，填了就不用樓板外框計算", ProjectInfo),
+            new LebrParamDef("LEBR_CFs", SpecTypeId.Number, "0dbc1252-2e5a-4ac7-b058-b97057d16078", ParamTarget.Project, "結構碳排估算值 CFs（kgCO2e），由估算視窗寫入；沒有填 0", ProjectInfo),
+            new LebrParamDef("LEBR_EstimateJson", SpecTypeId.String.Text, "e901a98d-f808-4b97-954c-a141e504b939", ParamTarget.Project, "結構碳排估算紀錄（JSON），供重現估算結果", ProjectInfo),
         };
     }
 }

@@ -81,6 +81,24 @@ namespace LebrCarbon.Revit
                 SetNumber(info, "LEBR_Sp", m.OverrideSp);
                 SetNumber(info, "LEBR_F", m.OverrideF);
                 SetNumber(info, "LEBR_AFu", m.OverrideAFu);
+                if (!m.Estimate)
+                {
+                    SetNumber(info, "LEBR_CFs", null);
+                    SetText(info, "LEBR_EstimateJson", null);
+                }
+                t.Commit();
+            }
+        }
+
+        /// <summary>寫入估算結果（LEBR_CFs 與 LEBR_EstimateJson）。由估算視窗在「計算並儲存」時呼叫。</summary>
+        public static void WriteEstimate(Document doc, double cfs, string estimateJson)
+        {
+            var info = doc.ProjectInformation;
+            using (var t = new Transaction(doc, "LEBR 結構碳排估算"))
+            {
+                t.Start();
+                SetNumber(info, "LEBR_CFs", cfs);
+                SetText(info, "LEBR_EstimateJson", estimateJson);
                 t.Commit();
             }
         }

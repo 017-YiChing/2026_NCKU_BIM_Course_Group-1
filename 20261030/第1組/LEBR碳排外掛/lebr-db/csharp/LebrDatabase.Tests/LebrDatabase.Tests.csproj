@@ -16,6 +16,7 @@
     <Compile Include="..\ProjectSettingsRules.cs" Link="ProjectSettingsRules.cs" />
     <Compile Include="..\Estimate\PLccTable.cs" Link="Estimate\PLccTable.cs" />
     <Compile Include="..\Estimate\StructureEstimator.cs" Link="Estimate\StructureEstimator.cs" />
+    <Compile Include="..\Estimate\EstimateQuantities.cs" Link="Estimate\EstimateQuantities.cs" />
   </ItemGroup>
 
   <ItemGroup>
