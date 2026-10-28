@@ -42,6 +42,12 @@ namespace LebrCarbon.UI
                 new Option("M", "M 中耗損：學校、出租辦公"),
                 new Option("L", "L 低耗損：住宅、自用辦公"),
             };
+            I.ItemsSource = new[]
+            {
+                new Option(1.5, "第一、二類（I = 1.5）"),
+                new Option(1.25, "第三類（I = 1.25）"),
+                new Option(1.0, "第四類（I = 1.0）"),
+            };
             UseType.ItemsSource = new[]
             {
                 new Option("residential", "residential：住宿、旅館、醫院"),
@@ -85,7 +91,7 @@ namespace LebrCarbon.UI
             SelectOption(Structure, m.Structure);
             EstimateCheck.IsChecked = m.Estimate;
 
-            SetText(I, m.I);
+            SelectOption(I, m.I);
             SetText(SaD, m.SaD);
             SetText(Fu, m.Fu);
             SetText(L, m.L);
@@ -118,7 +124,7 @@ namespace LebrCarbon.UI
                 UseType = SelectedValue<string>(UseType),
                 Structure = SelectedValue<string>(Structure),
                 Estimate = EstimateCheck.IsChecked == true,
-                I = Num(I),
+                I = SelectedValue<double?>(I),
                 SaD = Num(SaD),
                 Fu = Num(Fu),
                 L = Num(L),
@@ -163,6 +169,11 @@ namespace LebrCarbon.UI
             if (!_loading) Refresh();
         }
 
+        private void OnIChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_loading) Refresh();
+        }
+
         private void OnLlSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_loading) Refresh();
@@ -196,6 +207,7 @@ namespace LebrCarbon.UI
         private void OnSave(object sender, RoutedEventArgs e)
         {
             var m = Read();
+            if (ProjectSettingsRules.MissingRequired(m).Count > 0) return;
             m.ClearOverridesIfDisabled();
             m.ApplyStructureRules(_table);
             Result = m;
@@ -239,8 +251,14 @@ namespace LebrCarbon.UI
                 + (m.ProofAttached ? "" : "（未附證明文件，寫入 0）");
 
             var missing = ProjectSettingsRules.MissingRequired(m);
-            MissingText.Text = (missing.Count > 0 ? "⚠ 檢查：缺少 " + string.Join("、", missing) + "（未勾選估算時必填）\n" : "")
+            var names = missing.Select(n => n == "I" ? "用途係數 I" : n);
+            MissingText.Text = (missing.Count > 0 ? "⚠ 檢查：缺少 " + string.Join("、", names) + "（未勾選估算時必填）\n" : "")
                 + "⚠ 設計案缺少 Sp、F 時，僅設計案主結構未計算；基準案仍會計算";
+            if (missing.Contains("I"))
+                I.BorderBrush = (System.Windows.Media.Brush)FindResource("ErrorInk");
+            else
+                I.ClearValue(ComboBox.BorderBrushProperty);
+            SaveButton.IsEnabled = missing.Count == 0;
         }
 
         private double ItemLl(int? id, string structure)

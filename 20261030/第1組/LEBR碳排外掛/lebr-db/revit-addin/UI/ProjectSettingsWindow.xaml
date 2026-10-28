@@ -57,7 +57,7 @@
                         <TextBlock Text="勾選後，A 區所有欄位鎖定（僅畫面鎖定，不產生任何數值）" Style="{StaticResource Sub}" Margin="22,0,0,10"/>
 
                         <StackPanel x:Name="ASection">
-                            <TextBlock Text="A-1 設計案與基準案相同" FontWeight="SemiBold" Margin="0,4,0,6"/>
+                            <TextBlock Text="A-1 設計案與基準案相同（依結構計算書之數值填寫）" FontWeight="SemiBold" Margin="0,4,0,6"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="230"/>
@@ -66,8 +66,8 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="I（地震係數）*" VerticalAlignment="Center"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" x:Name="I" Margin="0,3" Padding="4,2" TextChanged="OnTextChanged"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="用途係數 I *" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" x:Name="I" Margin="0,3" SelectionChanged="OnIChanged"/>
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="SaD *" VerticalAlignment="Center"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" x:Name="SaD" Margin="0,3" Padding="4,2" TextChanged="OnTextChanged"/>
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Fu *" VerticalAlignment="Center"/>
