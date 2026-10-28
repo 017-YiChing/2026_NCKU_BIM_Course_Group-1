@@ -52,6 +52,14 @@ namespace LebrDatabaseTests
             var viaEstimator = new StructureEstimator(table).Calculate(items);
             Near("轉換後估算 CFs = 10×243.78 + 1000×1.15", 3587.8, viaEstimator.CFs);
 
+            Section("估算：估算紀錄（LEBR_EstimateJson）");
+            var json = EstimateRecord.ToJson(viaEstimator, map, "測試模型.rvt", new DateTime(2026, 10, 28, 12, 0, 0));
+            double above, below, cfs;
+            Equal("紀錄可讀回", true, EstimateRecord.TryReadSummary(json, out above, out below, out cfs));
+            Near("讀回地上", 3587.8, above);
+            Near("讀回合計", 3587.8, cfs);
+            Equal("格式不符時不可讀", false, EstimateRecord.TryReadSummary("not json", out above, out below, out cfs));
+
             TestEstimateTables(csvPath);
         }
 

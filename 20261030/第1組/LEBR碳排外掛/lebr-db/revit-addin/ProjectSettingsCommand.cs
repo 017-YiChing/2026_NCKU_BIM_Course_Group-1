@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -63,7 +64,8 @@ namespace LebrCarbon
                 ProjectSettingsStore.Read(doc, table),
                 table,
                 () => ProjectSettingsStore.Read(doc, table),
-                doc.Title);
+                doc.Title,
+                EstimateOpener(uiApp, doc, folder));
             new WindowInteropHelper(window).Owner = uiApp.MainWindowHandle;
             if (window.ShowDialog() != true || window.Result == null)
                 return Result.Cancelled;
@@ -82,6 +84,37 @@ namespace LebrCarbon
 
             TaskDialog.Show("LEBR", "已儲存專案設定。\nLEBR_LL = " + ll.ToString("0.00") + "（上限 " + table.MaxTotal.ToString("0.00") + "）");
             return Result.Succeeded;
+        }
+
+        /// <summary>「開啟估算」：讀取附錄一與模型數量，計算後把 CFs 與估算紀錄寫入專案。</summary>
+        private static Func<EstimateOutcome> EstimateOpener(UIApplication uiApp, Document doc, string folder)
+        {
+            return () =>
+            {
+                PLccTable plcc;
+                try
+                {
+                    plcc = PLccTable.Load(Path.Combine(folder, "data", "estimate", "附錄一_P-LCC_2022.csv"));
+                }
+                catch (Exception ex)
+                {
+                    TaskDialog.Show("LEBR", "無法讀取附錄一 P-LCC：\n" + ex.Message);
+                    return null;
+                }
+
+                var window = new EstimateWindow(
+                    () =>
+                    {
+                        List<string> notes;
+                        var rows = new EstimateQuantityProvider(doc).Read(out notes);
+                        return Tuple.Create(rows, notes);
+                    },
+                    plcc,
+                    doc.Title,
+                    (cfs, json) => ProjectSettingsStore.WriteEstimate(doc, cfs, json));
+                new WindowInteropHelper(window).Owner = uiApp.MainWindowHandle;
+                return window.ShowDialog() == true ? window.Outcome : null;
+            };
         }
     }
 }

@@ -53,8 +53,15 @@
                     <StackPanel>
                         <TextBlock Text="A. 主結構（基準案同設計案）" Style="{StaticResource SectionTitle}"/>
 
-                        <CheckBox x:Name="EstimateCheck" Content="使用估算（本次僅提供 UI 鎖定，不接另外的估算程式）" Margin="0,0,0,2" Checked="OnInputChanged" Unchecked="OnInputChanged"/>
-                        <TextBlock Text="勾選後，A 區所有欄位鎖定（僅畫面鎖定，不產生任何數值）" Style="{StaticResource Sub}" Margin="22,0,0,10"/>
+                        <CheckBox x:Name="EstimateCheck" Content="使用估算（A 區鎖定，估算結果儲存至專案）" Margin="0,0,0,2" Checked="OnInputChanged" Unchecked="OnInputChanged"/>
+                        <TextBlock Text="勾選後，A 區所有欄位鎖定；取消勾選會清除估算結果" Style="{StaticResource Sub}" Margin="22,0,0,6"/>
+                        <Border Background="#EEF5EA" CornerRadius="4" Padding="8" Margin="22,0,0,10">
+                            <StackPanel>
+                                <TextBlock x:Name="EstimateCfsText" FontWeight="SemiBold" Text="估算結果（CFs）：未估算"/>
+                                <TextBlock x:Name="EstimateSummaryText" Style="{StaticResource Sub}"/>
+                                <Button x:Name="OpenEstimateButton" Content="開啟估算" Style="{StaticResource Secondary}" HorizontalAlignment="Left" Margin="0,6,0,0" Click="OnOpenEstimate"/>
+                            </StackPanel>
+                        </Border>
 
                         <StackPanel x:Name="ASection">
                             <TextBlock Text="A-1 設計案與基準案相同（依結構計算書之數值填寫）" FontWeight="SemiBold" Margin="0,4,0,6"/>

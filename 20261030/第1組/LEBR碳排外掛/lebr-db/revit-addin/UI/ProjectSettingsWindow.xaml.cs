@@ -21,13 +21,18 @@ namespace LebrCarbon.UI
 
         public ProjectSettingsModel Result { get; private set; }
 
-        public ProjectSettingsWindow(ProjectSettingsModel initial, LifeExtensionTable table, Func<ProjectSettingsModel> reload, string projectName)
+        private readonly Func<EstimateOutcome> _openEstimate;
+
+        /// <param name="openEstimate">開啟估算視窗；回傳估算結果（取消時回傳 null）。</param>
+        public ProjectSettingsWindow(ProjectSettingsModel initial, LifeExtensionTable table, Func<ProjectSettingsModel> reload, string projectName, Func<EstimateOutcome> openEstimate)
         {
             _table = table;
             _reload = reload;
+            _openEstimate = openEstimate;
             InitializeComponent();
             ProjectName.Text = "專案：" + (string.IsNullOrWhiteSpace(projectName) ? "（未命名）" : projectName) + "　儲存位置：專案資訊的 LEBR_* 參數";
             ReloadButton.IsEnabled = reload != null;
+            OpenEstimateButton.IsEnabled = openEstimate != null;
             FillOptions();
             Load(initial ?? new ProjectSettingsModel());
         }
@@ -90,6 +95,7 @@ namespace LebrCarbon.UI
             SelectOption(UseType, m.UseType);
             SelectOption(Structure, m.Structure);
             EstimateCheck.IsChecked = m.Estimate;
+            ShowEstimate(m.EstimateCfs, m.EstimateSummary);
 
             SelectOption(I, m.I);
             SetText(SaD, m.SaD);
@@ -172,6 +178,27 @@ namespace LebrCarbon.UI
         private void OnIChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_loading) Refresh();
+        }
+
+        private void OnOpenEstimate(object sender, RoutedEventArgs e)
+        {
+            var outcome = _openEstimate?.Invoke();
+            if (outcome != null && outcome.Cfs.HasValue)
+                ShowEstimate(outcome.Cfs, outcome.Summary);
+        }
+
+        private void ShowEstimate(double? cfs, string summary)
+        {
+            if (cfs.HasValue)
+            {
+                EstimateCfsText.Text = "估算結果（CFs）：" + cfs.Value.ToString("N0", CultureInfo.InvariantCulture) + " kgCO2e（已儲存至專案）";
+                EstimateSummaryText.Text = summary ?? "";
+            }
+            else
+            {
+                EstimateCfsText.Text = "估算結果（CFs）：未估算";
+                EstimateSummaryText.Text = "";
+            }
         }
 
         private void OnLlSelectionChanged(object sender, SelectionChangedEventArgs e)

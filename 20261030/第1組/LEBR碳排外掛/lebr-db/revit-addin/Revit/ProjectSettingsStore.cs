@@ -14,7 +14,7 @@ namespace LebrCarbon.Revit
             "LEBR_WearClass", "LEBR_UseType", "LEBR_Structure",
             "LEBR_I", "LEBR_SaD", "LEBR_Fu", "LEBR_L", "LEBR_D0", "LEBR_Rs",
             "LEBR_CSER", "LEBR_LL", "LEBR_LL_Durable", "LEBR_LL_Quality",
-            "LEBR_S", "LEBR_Sp", "LEBR_F", "LEBR_AFu",
+            "LEBR_S", "LEBR_Sp", "LEBR_F", "LEBR_AFu", "LEBR_CFs", "LEBR_EstimateJson",
         };
 
         /// <summary>專案資訊缺少的 LEBR 參數（尚未按「建立參數」）。</summary>
@@ -54,7 +54,16 @@ namespace LebrCarbon.Revit
                 DurableItemId = ToItemId(Number(info, "LEBR_LL_Durable")),
                 QualityItemId = ToItemId(Number(info, "LEBR_LL_Quality")),
                 ProofAttached = (Number(info, "LEBR_LL") ?? 0) > 0,
+                EstimateCfs = Number(info, "LEBR_CFs"),
+                EstimateSummary = EstimateSummaryOf(Text(info, "LEBR_EstimateJson")),
             };
+        }
+
+        private static string EstimateSummaryOf(string json)
+        {
+            double above, below, cfs;
+            if (!EstimateRecord.TryReadSummary(json, out above, out below, out cfs)) return null;
+            return "地上 " + above.ToString("N0") + "　地下 " + below.ToString("N0") + "　合計 " + cfs.ToString("N0") + " kgCO2e";
         }
 
         /// <summary>寫回專案資訊。LL 寫入已限制上限的合計值；項目編號與合計值一併寫入，供下次還原選單。</summary>

@@ -88,6 +88,12 @@ namespace LebrCarbon
         public bool AreaOverrideEnabled { get; set; }
         public double? OverrideAFu { get; set; }
 
+        /// <summary>結構碳排估算值（LEBR_CFs），只用於畫面顯示；未估算時為 null。</summary>
+        public double? EstimateCfs { get; set; }
+
+        /// <summary>估算摘要文字（地上、地下、合計），只用於畫面顯示。</summary>
+        public string EstimateSummary { get; set; }
+
         public int? DurableItemId { get; set; }
         public int? QualityItemId { get; set; }
         public bool ProofAttached { get; set; }
