@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>LEBR 估算 UI 草稿 v2（僅供確認）</title>
+<style>
+  body { font-family: "Microsoft JhengHei UI", sans-serif; background: #e9e7e1; margin: 0; padding: 24px; color: #222; }
+  h2 { font-size: 15px; margin: 0 0 8px; }
+  .note { font-size: 12px; color: #666; }
+  .row { display: flex; gap: 20px; align-items: flex-start; }
+  .win { background: #F6F5F2; border: 1px solid #bbb; border-radius: 6px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .form { width: 400px; }
+  .est { width: 740px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 12px; margin-bottom: 12px; }
+  .title { font-weight: 700; margin-bottom: 8px; }
+  .cfs { margin-top: 8px; padding: 8px; background: #EEF5EA; border-radius: 4px; font-size: 13px; }
+  .cfs b { font-size: 15px; }
+  .saved { color: #2f6b4f; font-size: 12px; margin-top: 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; background: #fff; }
+  th, td { border: 1px solid #ddd; padding: 5px 6px; text-align: left; vertical-align: middle; }
+  th { background: #f0eee8; }
+  select { font-size: 12.5px; padding: 3px; width: 100%; box-sizing: border-box; }
+  .num { text-align: right; }
+  .warn { color: #8a4b00; background: #FFF4E0; padding: 6px 8px; border-radius: 4px; font-size: 12px; margin-top: 6px; }
+  .btn { display: inline-block; padding: 6px 14px; border-radius: 4px; border: 1px solid #888; background: #fff; font-size: 13px; margin-left: 6px; }
+  .btn.primary { background: #2f6b4f; color: #fff; border-color: #2f6b4f; }
+  .tag { font-size: 11px; background: #ddd; padding: 1px 5px; border-radius: 3px; }
+  .zero { color: #888; }
+</style>
+</head>
+<body>
+
+<p class="note">UI 草稿 v2：依確認事項修正（混凝土強度欄移除、牆僅計混凝土類結構牆、全部樓板納入、鋼筋沿用主體樓層、勾選估算後儲存並回傳引擎）。數值為目前模型實測彙總，尚未實作。</p>
+
+<div class="row">
+
+  <!-- 1. 專案設定表單（僅示意改動區域） -->
+  <div class="win form">
+    <h2>LEBR 專案設定（僅示意 A 區）</h2>
+    <div class="card">
+      <div class="title">A. 主結構（基準案同設計案）</div>
+      <label><input type="checkbox" checked> 使用估算（A 區鎖定）</label>
+      <div class="cfs">
+        估算結果（CFs）：<b>— kgCO2e</b><br>
+        <span class="note">地上 — ／ 地下 — ／ 合計 —</span><br>
+        <span class="note">按「開啟估算」可修改，儲存後才會傳回計算引擎。</span>
+        <div style="margin-top:6px"><span class="btn">開啟估算</span></div>
+      </div>
+      <div class="saved">✔ 已儲存至專案（LEBR_CFs，寫入後會重新計算）　<span class="zero">（尚未勾選時不顯示）</span></div>
+      <p class="note" style="margin-top:10px">A 區其餘欄位（I、SaD、Fu、L、D0、Rs、CSER、覆寫）維持現狀，本次不變更。</p>
+    </div>
+  </div>
+
+  <!-- 2. 估算視窗 -->
+  <div class="win est">
+    <h2>LEBR 主結構估算</h2>
+    <p class="note">來源：目前模型　樓層：地上 5 層（Level 1～RF）、地下 0 層（依標高 &lt; 0 判定）</p>
+
+    <div class="card">
+      <div class="title">1. 品類對應（每項選擇附錄一 P-LCC 材料）</div>
+      <table>
+        <tr><th>模型品類</th><th class="num">數量</th><th class="num">模型量</th><th style="width:40%">對應材料（附錄一）</th><th>單位</th></tr>
+        <tr>
+          <td>結構柱（StructuralColumns）</td>
+          <td class="num">76</td>
+          <td class="num">129.6 m³</td>
+          <td>
+            <select>
+              <option>預拌混凝土（2000psi）</option>
+              <option>預拌混凝土（3000psi）</option>
+              <option>預拌混凝土（4000psi）</option>
+              <option selected>預拌混凝土（3000psi）</option>
+              <option>預拌高爐混凝土（3000psi）</option>
+            </select>
+          </td>
+          <td>m³</td>
+        </tr>
+        <tr>
+          <td>結構構架（StructuralFraming，梁）</td>
+          <td class="num">125</td>
+          <td class="num">255.9 m³</td>
+          <td><select><option selected>預拌混凝土（3000psi）</option><option>預拌混凝土（4000psi）</option></select></td>
+          <td>m³</td>
+        </tr>
+        <tr>
+          <td>樓板（Floors，全部納入）</td>
+          <td class="num">4</td>
+          <td class="num">306.6 m³</td>
+          <td><select><option selected>預拌混凝土（3000psi）</option></select></td>
+          <td>m³</td>
+        </tr>
+        <tr>
+          <td>結構鋼筋（Rebar，765 支）</td>
+          <td class="num">765</td>
+          <td class="num">11,248.5 kg</td>
+          <td><select><option selected>鋼筋及鐵件（PLCC-003）</option></select></td>
+          <td>kg</td>
+        </tr>
+        <tr>
+          <td>牆（Walls，混凝土類結構牆）<span class="tag">僅計結構牆</span></td>
+          <td class="num zero">0</td>
+          <td class="num zero">0 m³</td>
+          <td><select><option>預拌混凝土（3000psi）</option></select></td>
+          <td>m³</td>
+        </tr>
+      </table>
+      <div class="warn">注意 1：模型中沒有混凝土類結構牆（31 面牆皆為非結構），牆的混凝土數量記為 0。<br>
+        注意 2：樓板目前沒有鋼筋資料，以 0 計算，結果中會註明「樓板未計入鋼筋」。</div>
+    </div>
+
+    <div class="card">
+      <div class="title">2. 計算結果</div>
+      <table>
+        <tr><th>項目</th><th class="num">地上層</th><th class="num">地下層</th><th class="num">合計</th></tr>
+        <tr><td>混凝土 An × L</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+        <tr><td>鋼筋 Bn × M</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+        <tr><td><b>CFs（kgCO2e）</b></td><td class="num"><b>—</b></td><td class="num"><b>—</b></td><td class="num"><b>—</b></td></tr>
+      </table>
+      <p class="note">按「計算並儲存」後填入數值。儲存後會寫入專案，並傳回計算引擎的設計案 CFs。</p>
+    </div>
+
+    <div style="text-align:right">
+      <span class="btn">取消</span>
+      <span class="btn">重新讀取模型</span>
+      <span class="btn primary">計算並儲存</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
