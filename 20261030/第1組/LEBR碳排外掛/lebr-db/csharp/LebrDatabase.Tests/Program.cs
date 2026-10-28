@@ -90,12 +90,16 @@ namespace LebrDatabaseTests
             // 外掛包才有計算引擎（EngineTests.cs）；資料庫包沒有時這行不會被編譯
             TestEngine(db, Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(path)), "samples", "appendix3_quantities.json"));
 
+            TestEstimate(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(path)), "data", "estimate", "附錄一_P-LCC_2022.csv"));
+
             Console.WriteLine();
             Console.WriteLine(_failed == 0 ? "全部通過" : "失敗 " + _failed + " 項");
             return _failed == 0 ? 0 : 1;
         }
 
         static partial void TestEngine(LebrDatabase db, string samplePath);
+
+        static partial void TestEstimate(string csvPath);
 
         private static string FindDefaultPath()
         {

@@ -14,6 +14,8 @@
     <!-- 資料庫交接包沒有 LebrEngine.cs，此時只跑資料庫測試 -->
     <Compile Include="..\LebrEngine.cs" Link="LebrEngine.cs" Condition="Exists('..\LebrEngine.cs')" />
     <Compile Include="..\ProjectSettingsRules.cs" Link="ProjectSettingsRules.cs" />
+    <Compile Include="..\Estimate\PLccTable.cs" Link="Estimate\PLccTable.cs" />
+    <Compile Include="..\Estimate\StructureEstimator.cs" Link="Estimate\StructureEstimator.cs" />
   </ItemGroup>
 
   <ItemGroup>

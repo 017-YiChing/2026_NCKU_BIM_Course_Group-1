@@ -28,6 +28,8 @@
     <Compile Include="..\csharp\LebrDatabase.cs" Link="Lebr\LebrDatabase.cs" />
     <Compile Include="..\csharp\LebrEngine.cs" Link="Lebr\LebrEngine.cs" />
     <Compile Include="..\csharp\ProjectSettingsRules.cs" Link="Lebr\ProjectSettingsRules.cs" />
+    <Compile Include="..\csharp\Estimate\PLccTable.cs" Link="Lebr\Estimate\PLccTable.cs" />
+    <Compile Include="..\csharp\Estimate\StructureEstimator.cs" Link="Lebr\Estimate\StructureEstimator.cs" />
     <None Include="..\dist\lebr_2025.json" Link="lebr_2025.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\samples\appendix3_quantities.json" Link="samples\appendix3_quantities.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
