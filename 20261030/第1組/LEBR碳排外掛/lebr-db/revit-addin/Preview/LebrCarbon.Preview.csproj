@@ -14,6 +14,8 @@
   <ItemGroup>
     <Compile Include="..\..\csharp\LebrDatabase.cs" Link="Lebr\LebrDatabase.cs" />
     <Compile Include="..\..\csharp\LebrEngine.cs" Link="Lebr\LebrEngine.cs" />
+    <Compile Include="..\..\csharp\ProjectSettingsRules.cs" Link="Lebr\ProjectSettingsRules.cs" />
+    <Compile Include="..\..\csharp\Estimate\*.cs" Link="Lebr\Estimate\%(Filename)%(Extension)" />
     <Compile Include="..\UI\*.xaml.cs" Link="UI\%(Filename)%(Extension)" />
     <Page Include="..\UI\*.xaml" Link="UI\%(Filename)%(Extension)" />
   </ItemGroup>
