@@ -5,7 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace RevitMCP.Lebr
+namespace LebrCarbon
 {
     // ================================================================ 輸入：數量格式（計畫書第十一章）
 

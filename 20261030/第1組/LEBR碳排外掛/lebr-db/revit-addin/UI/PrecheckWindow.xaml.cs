@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Microsoft.Win32;
-using RevitMCP.Lebr;
+using LebrCarbon;
 
 namespace LebrCarbon.UI
 {

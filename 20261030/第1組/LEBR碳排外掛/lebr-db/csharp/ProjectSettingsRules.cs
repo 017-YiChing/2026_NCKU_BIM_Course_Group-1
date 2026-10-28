@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RevitMCP.Lebr
+namespace LebrCarbon
 {
     /// <summary>專案設定表單的規則。不依賴 Revit API，可在 Revit 外測試。</summary>
     public static class ProjectSettingsRules

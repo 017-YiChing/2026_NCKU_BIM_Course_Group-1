@@ -6,7 +6,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
-using RevitMCP.Lebr;
+using LebrCarbon;
 using Visibility = System.Windows.Visibility; // Revit SDK 的全域 using 也有 Autodesk.Revit.DB.Visibility
 
 namespace LebrCarbon.UI

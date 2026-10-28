@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace RevitMCP.Lebr
+namespace LebrCarbon
 {
     /// <summary>
     /// LEBR 低碳（低蘊含碳）建築評估資料庫（lebr_2025.json）的讀取與查表。
