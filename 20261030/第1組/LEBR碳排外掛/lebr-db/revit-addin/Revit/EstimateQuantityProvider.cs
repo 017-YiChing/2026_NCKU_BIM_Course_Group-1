@@ -209,6 +209,7 @@ namespace LebrCarbon.Revit
             return LevelOf(host, BuiltInParameter.FAMILY_BASE_LEVEL_PARAM, BuiltInParameter.FAMILY_LEVEL_PARAM);
         }
 
+        /// <summary>依參數順序取樓層；都取不到時退回元件的 LevelId（結構構架等族群可能沒有上述參數）。</summary>
         private Level LevelOf(Element e, params BuiltInParameter[] parameters)
         {
             foreach (var bip in parameters)
@@ -218,14 +219,37 @@ namespace LebrCarbon.Revit
                 var level = _doc.GetElement(p.AsElementId()) as Level;
                 if (level != null) return level;
             }
-            return null;
+            return _doc.GetElement(e.LevelId) as Level;
         }
 
+        /// <summary>體積（m³）：優先用計算體積參數；沒有時加總幾何實體的體積（結構梁等族群）。</summary>
         private static double VolumeM3(Element e)
         {
             var p = e.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED);
-            if (p == null || !p.HasValue || p.StorageType != StorageType.Double) return 0;
-            return UnitUtils.ConvertFromInternalUnits(p.AsDouble(), UnitTypeId.CubicMeters);
+            if (p != null && p.HasValue && p.StorageType == StorageType.Double && p.AsDouble() > 0)
+                return UnitUtils.ConvertFromInternalUnits(p.AsDouble(), UnitTypeId.CubicMeters);
+
+            var geometry = e.get_Geometry(new Options());
+            var volume = SolidVolume(geometry);
+            return UnitUtils.ConvertFromInternalUnits(volume, UnitTypeId.CubicMeters);
+        }
+
+        private static double SolidVolume(GeometryElement geometry)
+        {
+            if (geometry == null) return 0;
+            double total = 0;
+            foreach (var obj in geometry)
+            {
+                var solid = obj as Solid;
+                if (solid != null)
+                {
+                    if (solid.Volume > 0) total += solid.Volume;
+                    continue;
+                }
+                var instance = obj as GeometryInstance;
+                if (instance != null) total += SolidVolume(instance.GetInstanceGeometry());
+            }
+            return total;
         }
 
         private static double VolumeM3(Rebar rebar)

@@ -46,6 +46,15 @@
                 <Border Style="{StaticResource Card}" Margin="0,0,0,12">
                     <StackPanel>
                         <TextBlock Text="2. 計算結果（CFsn = An × L + Bn × M）" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Style="{StaticResource Sub}" TextWrapping="Wrap" Margin="0,4,0,8">
+                            <Run FontWeight="SemiBold">參數說明</Run><LineBreak/>
+                            <Run FontWeight="SemiBold">An</Run>：混凝土數量（m³），單位依附錄一所選材料<LineBreak/>
+                            <Run FontWeight="SemiBold">L</Run>：混凝土單位碳排係數（kgCO2e／m³），取附錄一「總碳排量」欄<LineBreak/>
+                            <Run FontWeight="SemiBold">Bn</Run>：鋼筋數量（kg），由模型鋼筋體積 × 7850 kg/m³ 換算<LineBreak/>
+                            <Run FontWeight="SemiBold">M</Run>：鋼筋單位碳排係數（kgCO2e／kg），取附錄一「總碳排量」欄<LineBreak/>
+                            <Run FontWeight="SemiBold">CFsn</Run>：第 n 層結構碳排量（kgCO2e）= An × L + Bn × M<LineBreak/>
+                            <Run FontWeight="SemiBold">地上／地下</Run>：標高 ≥ 0 為地上，標高 &lt; 0 為地下；兩者各自加總後合計為 CFs
+                        </TextBlock>
                         <DataGrid x:Name="LevelGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                                   HeadersVisibility="Column" GridLinesVisibility="Horizontal" Margin="0,4,0,8" MinHeight="120">
                             <DataGrid.Columns>

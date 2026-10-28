@@ -32,7 +32,6 @@ namespace LebrCarbon.UI
             InitializeComponent();
             ProjectName.Text = "專案：" + (string.IsNullOrWhiteSpace(projectName) ? "（未命名）" : projectName) + "　儲存位置：專案資訊的 LEBR_* 參數";
             ReloadButton.IsEnabled = reload != null;
-            OpenEstimateButton.IsEnabled = openEstimate != null;
             FillOptions();
             Load(initial ?? new ProjectSettingsModel());
         }
@@ -95,6 +94,7 @@ namespace LebrCarbon.UI
             SelectOption(UseType, m.UseType);
             SelectOption(Structure, m.Structure);
             EstimateCheck.IsChecked = m.Estimate;
+            UpdateEstimateButton();
             ShowEstimate(m.EstimateCfs, m.EstimateSummary);
 
             SelectOption(I, m.I);
@@ -167,7 +167,14 @@ namespace LebrCarbon.UI
 
         private void OnInputChanged(object sender, RoutedEventArgs e)
         {
+            UpdateEstimateButton();
             if (!_loading) Refresh();
+        }
+
+        /// <summary>只有勾選「使用估算」時才能開啟估算視窗。</summary>
+        private void UpdateEstimateButton()
+        {
+            OpenEstimateButton.IsEnabled = _openEstimate != null && EstimateCheck.IsChecked == true;
         }
 
         private void OnTextChanged(object sender, TextChangedEventArgs e)
