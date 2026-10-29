@@ -58,15 +58,18 @@ namespace LebrCarbon.Revit
 
         private void ReadFraming()
         {
-            var skipped = 0;
+            var noLevel = 0;
+            var noVolume = 0;
             foreach (var e in Collect(BuiltInCategory.OST_StructuralFraming))
             {
                 var level = LevelOf(e, BuiltInParameter.FAMILY_LEVEL_PARAM, BuiltInParameter.FAMILY_BASE_LEVEL_PARAM);
+                if (level == null) { noLevel++; continue; }
                 var volume = VolumeM3(e);
-                if (level == null || volume <= 0) { skipped++; continue; }
+                if (volume <= 0) { noVolume++; continue; }
                 Add("StructuralFraming", level, volume, "m3", false);
             }
-            if (skipped > 0) _notes.Add("結構梁 " + skipped + " 支沒有樓層或體積，未計入");
+            if (noLevel > 0) _notes.Add("結構梁 " + noLevel + " 支讀不到樓層，未計入");
+            if (noVolume > 0) _notes.Add("結構梁 " + noVolume + " 支讀不到體積，未計入");
         }
 
         /// <summary>所有樓板（不限結構樓板），依 LevelId 歸屬樓層。</summary>
@@ -219,17 +222,38 @@ namespace LebrCarbon.Revit
                 var level = _doc.GetElement(p.AsElementId()) as Level;
                 if (level != null) return level;
             }
-            return _doc.GetElement(e.LevelId) as Level;
+            var byLevelId = _doc.GetElement(e.LevelId) as Level;
+            return byLevelId ?? LevelNearestTop(e);
         }
 
-        /// <summary>體積（m³）：優先用計算體積參數；沒有時加總幾何實體的體積（結構梁等族群）。</summary>
+        /// <summary>退回方案：取元件頂面高程最接近的樓層（結構梁等沒有樓層參數時使用）。</summary>
+        private Level LevelNearestTop(Element e)
+        {
+            var box = e.get_BoundingBox(null);
+            if (box == null) return null;
+            var top = box.Max.Z;
+            Level best = null;
+            var bestDiff = double.MaxValue;
+            foreach (var level in new FilteredElementCollector(_doc).OfClass(typeof(Level)).Cast<Level>())
+            {
+                var diff = Math.Abs(level.Elevation - top);
+                if (diff < bestDiff) { bestDiff = diff; best = level; }
+            }
+            var toleranceFt = UnitUtils.ConvertToInternalUnits(1.0, UnitTypeId.Meters);
+            return bestDiff <= toleranceFt ? best : null;
+        }
+
+        /// <summary>體積（m³）：依序用計算體積參數、名稱為 Volume 的參數、幾何實體。</summary>
         private static double VolumeM3(Element e)
         {
             var p = e.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED);
+            if (p == null || !p.HasValue || p.StorageType != StorageType.Double || p.AsDouble() <= 0)
+                p = e.LookupParameter("Volume");
             if (p != null && p.HasValue && p.StorageType == StorageType.Double && p.AsDouble() > 0)
                 return UnitUtils.ConvertFromInternalUnits(p.AsDouble(), UnitTypeId.CubicMeters);
 
-            var geometry = e.get_Geometry(new Options());
+            var options = new Options { DetailLevel = ViewDetailLevel.Fine, IncludeNonVisibleObjects = true };
+            var geometry = e.get_Geometry(options);
             var volume = SolidVolume(geometry);
             return UnitUtils.ConvertFromInternalUnits(volume, UnitTypeId.CubicMeters);
         }
