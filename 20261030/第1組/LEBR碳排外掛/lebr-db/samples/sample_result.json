@@ -125,6 +125,57 @@
     "construction": 520734.7024,
     "demolition": 1274170.2039000003
   },
+  "structure": {
+    "computed": true,
+    "design": {
+      "method": "standard_formula",
+      "C": 251.257032,
+      "W": 1.0,
+      "Sp": 1.46,
+      "F": 1.08,
+      "LCCR": 0.915,
+      "RN": 1.0,
+      "CFs": 12934138.387555946
+    },
+    "baseline": {
+      "C": 294.41954999999996,
+      "W": 1.0,
+      "Sp": 1.8,
+      "F": 1.15,
+      "LCCR": 1.0,
+      "RN": 1.0,
+      "CFs": 16563984.99909
+    }
+  },
+  "inputs": {
+    "building": {
+      "AFu": 56259.8,
+      "AFb": 23120.49,
+      "S": 14.0,
+      "Sb": 3.0,
+      "BH": 4.2,
+      "Sp": 1.46,
+      "F": 1.08
+    },
+    "project": {
+      "wear_class": "L",
+      "structure": "RC",
+      "use_type": "residential",
+      "I": 1.0,
+      "SaD": 0.298,
+      "Fu": 3.0,
+      "L": 205.0,
+      "D0": 300.0,
+      "Rs": 1.0,
+      "CSER": 1.7,
+      "LL": 0.05,
+      "EBF": 0.0,
+      "reuse_reduction": 0.0,
+      "low_carbon_material_reduction": 0.0,
+      "low_carbon_method_reduction": 0.0,
+      "structure_CFs": null
+    }
+  },
   "items": [
     {
       "code": "OW-04",
@@ -322,5 +373,5 @@
     "manual_version": "2025",
     "review_status": "draft"
   },
-  "calculated_at": "2026-10-24T00:45:42"
+  "calculated_at": "2026-10-30T00:15:20"
 }

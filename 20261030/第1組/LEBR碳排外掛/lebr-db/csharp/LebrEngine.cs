@@ -241,6 +241,9 @@ namespace LebrCarbon
         public List<ItemResult> Items { get; set; }
         public List<UnmappedElement> Unmapped { get; set; }
         public List<GradeMark> GradeScale { get; set; }
+        /// <summary>計算時用的整棟幾何與專案參數（匯出時附上，網頁可做輸入參數面板）。</summary>
+        public BuildingGeometry InputBuilding { get; set; }
+        public ProjectSettings InputProject { get; set; }
 
         /// <summary>給網頁用的結果格式（計畫書第八章）。</summary>
         public string ToJson()
@@ -264,6 +267,12 @@ namespace LebrCarbon
                 {
                     ["structure"] = UndergroundStructure, ["construction"] = UndergroundConstruction, ["demolition"] = UndergroundDemolition,
                 },
+                ["structure"] = StructureJson(),
+                ["inputs"] = new JObject
+                {
+                    ["building"] = InputBuilding == null ? null : JObject.FromObject(InputBuilding),
+                    ["project"] = InputProject == null ? null : JObject.FromObject(InputProject),
+                },
                 ["items"] = JArray.FromObject(Items.Select(i => new
                 {
                     code = i.Code, name = i.Name, group = i.Group, area_m2 = i.AreaM2,
@@ -280,6 +289,35 @@ namespace LebrCarbon
                 ["calculated_at"] = CalculatedAt.ToString("yyyy-MM-ddTHH:mm:ss"),
             };
             return o.ToString(Formatting.Indented);
+        }
+
+        /// <summary>
+        /// 主結構式 4、式 1 的中間值：C（kgCO2e/m²）、W、Sp、F、LCCR、RN 與 CFs，算不出來的值為 null。
+        /// 設計案採用結構碳排估算值（LEBR_CFs）時，method 為 estimate，只有 CFs。
+        /// </summary>
+        private JObject StructureJson()
+        {
+            var d = Structure ?? new StructureDetail();
+            var estimated = d.Computed && InputProject != null && InputProject.StructureCFs > 0;
+            var standard = d.Computed && !estimated;
+            var hasBaseline = d.BaselineC > 0;
+            Func<bool, double, JToken> v = (ok, x) => ok ? new JValue(x) : JValue.CreateNull();
+            return new JObject
+            {
+                ["computed"] = d.Computed,
+                ["design"] = new JObject
+                {
+                    ["method"] = estimated ? "estimate" : standard ? "standard_formula" : null,
+                    ["C"] = v(standard, d.DesignC), ["W"] = v(standard, d.DesignW), ["Sp"] = v(standard, d.DesignSp), ["F"] = v(standard, d.DesignF),
+                    ["LCCR"] = v(standard, d.Lccr), ["RN"] = v(standard, d.Rn), ["CFs"] = v(d.Computed, Design == null ? 0 : Design.CFs),
+                },
+                // 基準案依表 4-6 取 W、Sp、F，LCCR = 1，EBF = 0
+                ["baseline"] = new JObject
+                {
+                    ["C"] = v(hasBaseline, d.BaselineC), ["W"] = v(hasBaseline, d.BaselineW), ["Sp"] = v(hasBaseline, d.BaselineSp), ["F"] = v(hasBaseline, d.BaselineF),
+                    ["LCCR"] = v(hasBaseline, 1.0), ["RN"] = v(hasBaseline, d.BaselineRn), ["CFs"] = v(hasBaseline, Baseline == null ? 0 : Baseline.CFs),
+                },
+            };
         }
     }
 
@@ -327,6 +365,8 @@ namespace LebrCarbon
                 Groups = new List<GroupRow>(),
                 GradeScale = new List<GradeMark>(),
                 WearClass = p.WearClass,
+                InputBuilding = b,
+                InputProject = p,
                 LL = p.LL,
             };
 

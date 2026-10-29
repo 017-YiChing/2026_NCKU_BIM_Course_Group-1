@@ -20,6 +20,11 @@ namespace LebrDatabaseTests
             Near("覆寫後 CFR 與原計算相同（不重複套用 Lccr、Rn）", baseline.CFR.Value, r7.CFR.Value);
             Equal("覆寫後等級相同", baseline.Grade, r7.Grade);
             Equal("覆寫有說明訊息", true, r7.Issues.Any(i => i.Message.Contains("LEBR_CFs")));
+            var j7 = Newtonsoft.Json.Linq.JObject.Parse(r7.ToJson());
+            Equal("結果 JSON 標示主結構採估算值", "estimate", (string)j7["structure"]["design"]["method"]);
+            Equal("採估算值時結果 JSON 不輸出設計案 C", Newtonsoft.Json.Linq.JTokenType.Null, j7["structure"]["design"]["C"].Type);
+            Near("採估算值時結果 JSON 的 CFs 為估算值", baseline.Design.CFs, (double)j7["structure"]["design"]["CFs"]);
+            Near("採估算值時基準案仍有 Sp", 1.8, (double)j7["structure"]["baseline"]["Sp"]);
 
             var noSpF = QuantityInput.Load(samplePath);
             noSpF.Building.Sp = null;
