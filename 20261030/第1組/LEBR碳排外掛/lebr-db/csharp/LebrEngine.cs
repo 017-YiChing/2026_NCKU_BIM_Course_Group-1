@@ -292,31 +292,38 @@ namespace LebrCarbon
         }
 
         /// <summary>
-        /// 主結構式 4、式 1 的中間值：C（kgCO2e/m²）、W、Sp、F、LCCR、RN 與 CFs，算不出來的值為 null。
-        /// 設計案採用結構碳排估算值（LEBR_CFs）時，method 為 estimate，只有 CFs。
+        /// 主結構區塊，欄位依「主結構 BIM 數量法｜結果 JSON 輸出規格」v1 第 2-1 節。
+        /// method：standard（式 1～7）、bim_quantity（採 LEBR_CFs 估算值）、none（設計案未計算）。
+        /// standard 內是式 4、式 1 的參數與中間值，算不出來的為 null；基準案一律依表 4-6，採估算值時仍輸出。
+        /// bim 是 BIM 數量法明細（規格 2-2），外掛尚未輸出，固定為 null。
         /// </summary>
         private JObject StructureJson()
         {
             var d = Structure ?? new StructureDetail();
-            var estimated = d.Computed && InputProject != null && InputProject.StructureCFs > 0;
+            var b = InputBuilding ?? new BuildingGeometry();
+            var p = InputProject ?? new ProjectSettings();
+            var estimated = d.Computed && p.StructureCFs > 0;
             var standard = d.Computed && !estimated;
             var hasBaseline = d.BaselineC > 0;
             Func<bool, double, JToken> v = (ok, x) => ok ? new JValue(x) : JValue.CreateNull();
+            Func<double?, JToken> n = x => x.HasValue ? new JValue(x.Value) : JValue.CreateNull();
             return new JObject
             {
-                ["computed"] = d.Computed,
-                ["design"] = new JObject
+                ["method"] = estimated ? "bim_quantity" : standard ? "standard" : "none",
+                ["design_CFs"] = v(d.Computed, Design == null ? 0 : Design.CFs),
+                ["baseline_CFsc"] = v(hasBaseline, Baseline == null ? 0 : Baseline.CFs),
+                ["intensity"] = v(d.Computed && AFu > 0, AFu > 0 && Design != null ? Design.CFs / AFu : 0),
+                ["AFu"] = AFu,
+                ["underground_CFs"] = UndergroundStructure,
+                ["standard"] = new JObject
                 {
-                    ["method"] = estimated ? "estimate" : standard ? "standard_formula" : null,
-                    ["C"] = v(standard, d.DesignC), ["W"] = v(standard, d.DesignW), ["Sp"] = v(standard, d.DesignSp), ["F"] = v(standard, d.DesignF),
-                    ["LCCR"] = v(standard, d.Lccr), ["RN"] = v(standard, d.Rn), ["CFs"] = v(d.Computed, Design == null ? 0 : Design.CFs),
+                    ["I"] = n(p.I), ["SaD"] = n(p.SaD), ["Fu"] = n(p.Fu), ["L"] = n(p.L), ["D0"] = n(p.D0), ["Rs"] = n(p.Rs),
+                    ["BH"] = n(b.BH), ["Sp"] = v(standard, d.DesignSp), ["F"] = v(standard, d.DesignF),
+                    ["Rn"] = v(standard, d.Rn), ["LCCR"] = v(standard, d.Lccr), ["C"] = v(standard, d.DesignC), ["W"] = v(standard, d.DesignW),
+                    ["baseline_Sp"] = v(hasBaseline, d.BaselineSp), ["baseline_F"] = v(hasBaseline, d.BaselineF),
+                    ["baseline_C"] = v(hasBaseline, d.BaselineC), ["baseline_W"] = v(hasBaseline, d.BaselineW),
                 },
-                // 基準案依表 4-6 取 W、Sp、F，LCCR = 1，EBF = 0
-                ["baseline"] = new JObject
-                {
-                    ["C"] = v(hasBaseline, d.BaselineC), ["W"] = v(hasBaseline, d.BaselineW), ["Sp"] = v(hasBaseline, d.BaselineSp), ["F"] = v(hasBaseline, d.BaselineF),
-                    ["LCCR"] = v(hasBaseline, 1.0), ["RN"] = v(hasBaseline, d.BaselineRn), ["CFs"] = v(hasBaseline, Baseline == null ? 0 : Baseline.CFs),
-                },
+                ["bim"] = JValue.CreateNull(),
             };
         }
     }

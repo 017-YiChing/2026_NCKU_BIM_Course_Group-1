@@ -126,26 +126,32 @@
     "demolition": 1274170.2039000003
   },
   "structure": {
-    "computed": true,
-    "design": {
-      "method": "standard_formula",
-      "C": 251.257032,
-      "W": 1.0,
+    "method": "standard",
+    "design_CFs": 12934138.387555946,
+    "baseline_CFsc": 16563984.99909,
+    "intensity": 229.90018428000002,
+    "AFu": 56259.8,
+    "underground_CFs": 11241564.895,
+    "standard": {
+      "I": 1.0,
+      "SaD": 0.298,
+      "Fu": 3.0,
+      "L": 205.0,
+      "D0": 300.0,
+      "Rs": 1.0,
+      "BH": 4.2,
       "Sp": 1.46,
       "F": 1.08,
+      "Rn": 1.0,
       "LCCR": 0.915,
-      "RN": 1.0,
-      "CFs": 12934138.387555946
-    },
-    "baseline": {
-      "C": 294.41954999999996,
+      "C": 251.257032,
       "W": 1.0,
-      "Sp": 1.8,
-      "F": 1.15,
-      "LCCR": 1.0,
-      "RN": 1.0,
-      "CFs": 16563984.99909
-    }
+      "baseline_Sp": 1.8,
+      "baseline_F": 1.15,
+      "baseline_C": 294.41954999999996,
+      "baseline_W": 1.0
+    },
+    "bim": null
   },
   "inputs": {
     "building": {
@@ -373,5 +379,5 @@
     "manual_version": "2025",
     "review_status": "draft"
   },
-  "calculated_at": "2026-10-30T00:15:20"
+  "calculated_at": "2026-10-30T12:07:39"
 }

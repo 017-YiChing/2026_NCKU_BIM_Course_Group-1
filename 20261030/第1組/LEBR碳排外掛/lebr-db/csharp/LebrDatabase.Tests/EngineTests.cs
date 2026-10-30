@@ -45,10 +45,13 @@ namespace LebrDatabaseTests
             Equal("代號 IW-02 依低耗損補成 IW-L-02", true, r.Items.Any(i => i.Code == "IW-L-02"));
             Equal("結果 JSON 可以解析", true, Newtonsoft.Json.Linq.JObject.Parse(r.ToJson())["result"]["grade"].ToString() == "1+");
             var json = Newtonsoft.Json.Linq.JObject.Parse(r.ToJson());
-            Equal("結果 JSON 主結構方法為標準公式", "standard_formula", (string)json["structure"]["design"]["method"]);
-            Within("結果 JSON 主結構設計案 C", 251.26, (double)json["structure"]["design"]["C"], 0.01);
-            Near("結果 JSON 主結構基準案 Sp（表 4-6）", 1.8, (double)json["structure"]["baseline"]["Sp"]);
-            Near("結果 JSON 主結構 LCCR", 0.915, (double)json["structure"]["design"]["LCCR"]);
+            Equal("結果 JSON 主結構方法為標準公式", "standard", (string)json["structure"]["method"]);
+            Within("結果 JSON 主結構設計案 C", 251.26, (double)json["structure"]["standard"]["C"], 0.01);
+            Near("結果 JSON 主結構基準案 Sp（表 4-6）", 1.8, (double)json["structure"]["standard"]["baseline_Sp"]);
+            Near("結果 JSON 主結構 LCCR", 0.915, (double)json["structure"]["standard"]["LCCR"]);
+            Near("結果 JSON 主結構 CFs 與引擎一致", r.Design.CFs, (double)json["structure"]["design_CFs"]);
+            Near("結果 JSON 主結構強度 = CFs ÷ AFu", r.Design.CFs / r.AFu, (double)json["structure"]["intensity"]);
+            Equal("結果 JSON 尚無 BIM 明細", Newtonsoft.Json.Linq.JTokenType.Null, json["structure"]["bim"].Type);
             Near("結果 JSON 附輸入參數 SaD", 0.298, (double)json["inputs"]["project"]["SaD"]);
 
             Section("計算引擎：缺資料時的行為");
