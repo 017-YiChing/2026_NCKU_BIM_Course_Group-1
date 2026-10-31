@@ -12,9 +12,41 @@ namespace LebrCarbon
     {
         public const int Version = 1;
 
-        public static string ToJson(EstimateResult result, IDictionary<string, string> materialBySource, string modelName, DateTime calculatedAt)
+        /// <param name="items">各品類 × 樓層的數量（估算視窗的輸入）。有給時存成 rows，供網頁的數量報告與碳排報告使用。</param>
+        /// <param name="table">附錄一；有給時把用到的材料係數存成 materials，網頁不必另讀資料庫。</param>
+        public static string ToJson(EstimateResult result, IDictionary<string, string> materialBySource, string modelName, DateTime calculatedAt,
+            IEnumerable<EstimateItem> items = null, PLccTable table = null)
         {
             if (result == null) throw new ArgumentNullException("result");
+
+            var rows = new JArray();
+            var used = new List<string>();
+            foreach (var it in items ?? new EstimateItem[0])
+            {
+                if (it.Quantity <= 0) continue;
+                rows.Add(new JObject
+                {
+                    ["source"] = it.Source,
+                    ["level"] = it.Level,
+                    ["elevation_m"] = it.ElevationM,
+                    ["below_ground"] = it.ElevationM < 0,
+                    ["quantity"] = it.Quantity,
+                    ["unit"] = it.Unit,
+                    ["material_id"] = it.MaterialId,
+                    ["is_rebar"] = it.IsRebar,
+                });
+                if (it.MaterialId != null && !used.Contains(it.MaterialId)) used.Add(it.MaterialId);
+            }
+
+            var materials = new JArray();
+            if (table != null)
+            {
+                foreach (var id in used)
+                {
+                    var m = table.Get(id);
+                    materials.Add(new JObject { ["id"] = m.Id, ["name"] = m.Name, ["unit"] = m.Unit, ["total"] = m.TotalA1A4, ["manual_issue"] = m.ManualIssue });
+                }
+            }
 
             var levels = new JArray();
             foreach (var l in result.Levels)
@@ -49,6 +81,8 @@ namespace LebrCarbon
                 ["model"] = modelName ?? "",
                 ["levels"] = levels,
                 ["selections"] = selections,
+                ["rows"] = rows,
+                ["materials"] = materials,
                 ["rebar_sources"] = new JObject
                 {
                     ["structure_rebar"] = "Rebar（主體為結構柱、結構構架）＋ OST_AreaRein／OST_PathRein 系統內鋼筋（樓板）",

@@ -32,6 +32,7 @@
     <Compile Include="..\csharp\Estimate\StructureEstimator.cs" Link="Lebr\Estimate\StructureEstimator.cs" />
     <Compile Include="..\csharp\Estimate\EstimateQuantities.cs" Link="Lebr\Estimate\EstimateQuantities.cs" />
     <Compile Include="..\csharp\Estimate\EstimateRecord.cs" Link="Lebr\Estimate\EstimateRecord.cs" />
+    <Compile Include="..\csharp\Estimate\StructureBim.cs" Link="Lebr\Estimate\StructureBim.cs" />
     <None Include="..\data\estimate\附錄一_P-LCC_2022.csv" Link="data\estimate\附錄一_P-LCC_2022.csv" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\dist\lebr_2025.json" Link="lebr_2025.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\samples\appendix3_quantities.json" Link="samples\appendix3_quantities.json" CopyToOutputDirectory="PreserveNewest" />

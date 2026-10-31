@@ -18,6 +18,7 @@
     <Compile Include="..\Estimate\StructureEstimator.cs" Link="Estimate\StructureEstimator.cs" />
     <Compile Include="..\Estimate\EstimateQuantities.cs" Link="Estimate\EstimateQuantities.cs" />
     <Compile Include="..\Estimate\EstimateRecord.cs" Link="Estimate\EstimateRecord.cs" />
+    <Compile Include="..\Estimate\StructureBim.cs" Link="Estimate\StructureBim.cs" />
   </ItemGroup>
 
   <ItemGroup>

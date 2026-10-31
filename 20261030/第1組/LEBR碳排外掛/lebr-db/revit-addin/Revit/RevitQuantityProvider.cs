@@ -198,6 +198,7 @@ namespace LebrCarbon.Revit
                 CSER = Number(info, "LEBR_CSER") ?? 0,
                 LL = Number(info, "LEBR_LL") ?? 0,
                 StructureCFs = Number(info, "LEBR_CFs"),
+                StructureEstimateJson = Text(info, "LEBR_EstimateJson"),
             };
         }
 

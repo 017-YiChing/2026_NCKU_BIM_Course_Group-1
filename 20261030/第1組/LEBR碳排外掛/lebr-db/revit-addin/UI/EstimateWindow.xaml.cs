@@ -48,6 +48,7 @@ namespace LebrCarbon.UI
         private readonly string _modelName;
 
         private List<EstimateQuantityRow> _rows = new List<EstimateQuantityRow>();
+        private List<EstimateItem> _items;
         private List<string> _quantityNotes = new List<string>();
         private EstimateResult _result;
 
@@ -157,8 +158,8 @@ namespace LebrCarbon.UI
         {
             try
             {
-                var items = EstimateQuantities.ToItems(_rows, SelectedMaterials());
-                _result = new StructureEstimator(_table).Calculate(items);
+                _items = EstimateQuantities.ToItems(_rows, SelectedMaterials());
+                _result = new StructureEstimator(_table).Calculate(_items);
             }
             catch (InvalidOperationException ex)
             {
@@ -190,7 +191,8 @@ namespace LebrCarbon.UI
         private void OnSave(object sender, RoutedEventArgs e)
         {
             if (_result == null) return;
-            var json = EstimateRecord.ToJson(_result, SelectedMaterials(), _modelName, DateTime.Now);
+            // 連同各品類 × 樓層數量與材料係數一起存，結果 JSON 的 structure.bim 由此產生
+            var json = EstimateRecord.ToJson(_result, SelectedMaterials(), _modelName, DateTime.Now, _items, _table);
             try
             {
                 _save(_result.CFs, json);

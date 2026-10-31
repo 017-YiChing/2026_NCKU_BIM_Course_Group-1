@@ -77,6 +77,8 @@ namespace LebrCarbon
         [JsonProperty("low_carbon_method_reduction")] public double LowCarbonMethodReduction { get; set; }
         /// <summary>結構碳排估算值（LEBR_CFs）。有值（大於 0）時作為設計案 CFs，略過 Sp、F 計算；不再套用 Lccr 與 Rn。</summary>
         [JsonProperty("structure_CFs")] public double? StructureCFs { get; set; }
+        /// <summary>結構碳排估算紀錄（LEBR_EstimateJson），匯出結果 JSON 時轉成 structure.bim。不參與計算。</summary>
+        [JsonProperty("structure_estimate_json")] public string StructureEstimateJson { get; set; }
     }
 
     public class ComponentQuantity
@@ -271,7 +273,7 @@ namespace LebrCarbon
                 ["inputs"] = new JObject
                 {
                     ["building"] = InputBuilding == null ? null : JObject.FromObject(InputBuilding),
-                    ["project"] = InputProject == null ? null : JObject.FromObject(InputProject),
+                    ["project"] = InputProjectJson(),
                 },
                 ["items"] = JArray.FromObject(Items.Select(i => new
                 {
@@ -295,8 +297,17 @@ namespace LebrCarbon
         /// 主結構區塊，欄位依「主結構 BIM 數量法｜結果 JSON 輸出規格」v1 第 2-1 節。
         /// method：standard（式 1～7）、bim_quantity（採 LEBR_CFs 估算值）、none（設計案未計算）。
         /// standard 內是式 4、式 1 的參數與中間值，算不出來的為 null；基準案一律依表 4-6，採估算值時仍輸出。
-        /// bim 是 BIM 數量法明細（規格 2-2），外掛尚未輸出，固定為 null。
+        /// bim 是 BIM 數量法明細（StructureBim 由估算紀錄轉出），只有 method = bim_quantity 且估算紀錄含明細時才有值。
         /// </summary>
+        /// <summary>輸入參數；估算紀錄本身很長，已轉成 structure.bim，這裡不重複輸出。</summary>
+        private JObject InputProjectJson()
+        {
+            if (InputProject == null) return null;
+            var o = JObject.FromObject(InputProject);
+            o.Remove("structure_estimate_json");
+            return o;
+        }
+
         private JObject StructureJson()
         {
             var d = Structure ?? new StructureDetail();
@@ -323,7 +334,8 @@ namespace LebrCarbon
                     ["baseline_Sp"] = v(hasBaseline, d.BaselineSp), ["baseline_F"] = v(hasBaseline, d.BaselineF),
                     ["baseline_C"] = v(hasBaseline, d.BaselineC), ["baseline_W"] = v(hasBaseline, d.BaselineW),
                 },
-                ["bim"] = JValue.CreateNull(),
+                // 只有採估算值時才輸出；沒勾「使用估算」時，專案裡留著的舊估算紀錄不輸出，以免被當成主結構的算法
+                ["bim"] = estimated ? (JToken)StructureBim.FromEstimateJson(p.StructureEstimateJson) ?? JValue.CreateNull() : JValue.CreateNull(),
             };
         }
     }

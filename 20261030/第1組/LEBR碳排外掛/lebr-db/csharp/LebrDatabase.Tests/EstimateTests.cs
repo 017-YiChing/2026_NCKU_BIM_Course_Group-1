@@ -65,6 +65,37 @@ namespace LebrDatabaseTests
             Near("讀回合計", 3587.8, cfs);
             Equal("格式不符時不可讀", false, EstimateRecord.TryReadSummary("not json", out above, out below, out cfs));
 
+            Section("估算：結果 JSON 的 structure.bim（網頁三份文件）");
+            Equal("舊版紀錄（沒有 rows）不產生 bim", true, StructureBim.FromEstimateJson(json) == null);
+            var fullJson = EstimateRecord.ToJson(viaEstimator, map, "測試模型.rvt", new DateTime(2026, 10, 28, 12, 0, 0), items, table);
+            Equal("新版紀錄可讀回", true, EstimateRecord.TryReadSummary(fullJson, out above, out below, out cfs));
+            var bim = StructureBim.FromEstimateJson(fullJson);
+            Equal("產生 bim", true, bim != null);
+            var q = (Newtonsoft.Json.Linq.JArray)bim["quantities"];
+            Equal("數量列數", 2, q.Count);
+            Equal("柱 → column", "column", (string)q[0]["category"]);
+            Equal("鋼筋 → rebar", "rebar", (string)q[1]["category"]);
+            Equal("標高 0 為地上", "above", (string)q[0]["zone"]);
+            var f = ((Newtonsoft.Json.Linq.JArray)bim["factors"]).ToDictionary(x => (string)x["id"], x => (double)x["total"]);
+            Equal("係數只含用到的材料", 2, f.Count);
+            Near("數量 × 係數 = 估算 CFs", viaEstimator.CFs, q.Sum(x => (double)x["quantity"] * f[(string)x["material_id"]]));
+            Equal("模型說明有假設", true, ((Newtonsoft.Json.Linq.JArray)bim["model_description"]["assumptions"]).Count >= 3);
+
+            var withRecord = QuantityInput.Load(samplePath);
+            withRecord.Project.StructureCFs = viaEstimator.CFs;
+            withRecord.Project.StructureEstimateJson = fullJson;
+            var jr = Newtonsoft.Json.Linq.JObject.Parse(new LebrCalculator(db).Calculate(withRecord).ToJson());
+            Equal("採估算值：structure.method = bim_quantity", "bim_quantity", (string)jr["structure"]["method"]);
+            Equal("採估算值：structure.bim 有數量", 2, ((Newtonsoft.Json.Linq.JArray)jr["structure"]["bim"]["quantities"]).Count);
+            Equal("inputs 不重複輸出估算紀錄", true, jr["inputs"]["project"]["structure_estimate_json"] == null);
+            withRecord.Project.StructureEstimateJson = json;
+            jr = Newtonsoft.Json.Linq.JObject.Parse(new LebrCalculator(db).Calculate(withRecord).ToJson());
+            Equal("舊版估算紀錄：structure.bim 為 null", Newtonsoft.Json.Linq.JTokenType.Null, jr["structure"]["bim"].Type);
+            var notEstimated = QuantityInput.Load(samplePath);
+            notEstimated.Project.StructureEstimateJson = fullJson;
+            jr = Newtonsoft.Json.Linq.JObject.Parse(new LebrCalculator(db).Calculate(notEstimated).ToJson());
+            Equal("沒勾使用估算：留著的估算紀錄不輸出 bim", Newtonsoft.Json.Linq.JTokenType.Null, jr["structure"]["bim"].Type);
+
             TestEstimateTables(csvPath);
         }
 
